@@ -10,17 +10,18 @@ Author: Elisabetta Carrara
 Author URI: https://elica-webservices.it
 License: GPL2
 */
+
 if (!function_exists('microblog_enqueue_scripts')) {
   // Enqueue the CSS and JavaScript files
   function microblog_enqueue_scripts() {
     wp_enqueue_style('microblog-styles', plugin_dir_url(__FILE__) . 'microblog.css', array(), '3.3.1', 'all');
     wp_enqueue_script('microblog', plugins_url('microblog.js', __FILE__), array('jquery'), '3.3.1', true);
     wp_localize_script('microblog', 'microblogData', array(
-  'ajaxurl' => admin_url('/admin-ajax.php'),
-  'nonce' => wp_create_nonce('microblog'),
-  'defaultCategory' => get_option('default_category'),
-  'siteUrl' => get_site_url(),
-  ));
+      'ajaxurl' => admin_url('/admin-ajax.php'),
+      'nonce' => wp_create_nonce('microblog'),
+      'defaultCategory' => get_option('default_category'),
+      'siteUrl' => get_site_url(),
+    ));
   }
   add_action('wp_enqueue_scripts', 'microblog_enqueue_scripts');
 }
@@ -44,7 +45,7 @@ if (!function_exists('microblog_shortcode')) {
     $html .= '<textarea id="microblog-content" name="microblog_content" placeholder="(Write the Title into parenthesis)
 Your #content. #hastags become tags"></textarea>';
     $html .= '<select name="microblog_category" id="microblog-category">';
-    
+
     if (!is_wp_error($categories) && !empty($categories)) {
       foreach ($categories as $category) {
         if (is_object($category) && property_exists($category, 'term_id') && property_exists($category, 'name')) {
@@ -58,12 +59,12 @@ Your #content. #hastags become tags"></textarea>';
         $html .= '<option value="' . esc_attr($default_category->term_id) . '">' . esc_html($default_category->name) . '</option>';
       }
     }
-    
+
     $html .= '</select>';
     $html .= '<input type="submit" value="Submit" />';
     $html .= '</form>';
     $html .= '</div>';
-	
+
     return $html;
   }
   add_shortcode('microblog', 'microblog_shortcode');
@@ -74,8 +75,8 @@ if (!function_exists('microblog_submit')) {
   function microblog_submit() {
     // Verify the nonce
     if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'microblog')) {
-  wp_send_json_error('Invalid nonce');
-}
+      wp_send_json_error('Invalid nonce');
+    }
 
     // Check if the user is logged in
     if (!is_user_logged_in()) {
@@ -184,7 +185,7 @@ if (!function_exists('microblog_post_type_taxonomy_field_callback')) {
     $taxonomies = get_taxonomies(array('public' => true), 'objects');
 
     echo '<select name="microblog_post_type_taxonomy">';
-    foreach ($taxonomies as $taxonomy) {
+    foreach ($ taxonomies as $taxonomy) {
       $selected = ($current_taxonomy == $taxonomy->name) ? 'selected' : '';
       echo '<option value="' . esc_attr($taxonomy->name) . '" ' . esc_attr($selected) . '>' . esc_html($taxonomy->label) . '</option>';
     }
