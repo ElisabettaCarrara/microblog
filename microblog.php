@@ -19,6 +19,7 @@ if (!function_exists('microblog_enqueue_scripts')) {
     wp_localize_script('microblog', 'microblogData', array(
       'ajaxurl' => admin_url('/admin-ajax.php'),
       'nonce' => wp_create_nonce('microblog'),
+      'nonceValue' => wp_create_nonce('microblog'),
       'defaultCategory' => get_option('default_category'),
       'siteUrl' => get_site_url(),
     ));
@@ -74,8 +75,7 @@ if (!function_exists('microblog_submit')) {
   // Handle the AJAX request
   function microblog_submit() {
     // Verify the nonce
-    if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'microblog')) {
-      wp_send_json_error('Invalid nonce');
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'microblog')) {
     }
 
     // Check if the user is logged in
@@ -86,8 +86,8 @@ if (!function_exists('microblog_submit')) {
     // Get the content, title, tags, and category from the AJAX request
     $content = isset($_POST['content']) ? sanitize_textarea_field(wp_unslash($_POST['content'])) : '';
     $title = isset($_POST['title']) ? sanitize_textarea_field(wp_unslash($_POST['title'])) : '';
-    $tags = isset($_POST['tags']) && is_array($_POST['tags']) ? array_map('sanitize_text_field', array_map('wp_unslash', $_POST['tags'])) : [];
-    $category_id = isset($_POST['microblog_category']) ? intval($_POST['microblog_category']) : get_option('default_category');
+    $tags = isset($_POST['tags']) && is_array($_POST['tags']) ? array_map('sanitize_text_field', wp_unslash($_POST['tags'])) : [];
+    $category_id = isset($_POST['microblog_category']) ? intval(wp_unslash($_POST['microblog_category'])) : get_option('default_category');
     $post_type = get_option('microblog_post_type_setting');
 
     // Create the post
