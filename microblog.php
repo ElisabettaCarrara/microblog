@@ -41,7 +41,7 @@ if (!function_exists('microblog_shortcode')) {
     $categories = get_terms($args);
 
     $html = '<div class="microblog-form-container">';
-    $html = '<form id="microblog-form" method="post">';
+    $html .= '<form id="microblog-form" method="post">';
     $html .= '<textarea id="microblog-content" name="microblog_content" placeholder="(Write the Title into parenthesis)
 Your #content. #hastags become tags"></textarea>';
     $html .= '<select name="microblog_category" id="microblog-category">';
@@ -74,7 +74,7 @@ if (!function_exists('microblog_submit')) {
   // Handle the AJAX request
   function microblog_submit() {
     // Verify the nonce
-    if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'microblog')) {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'microblog')) {
       wp_send_json_error('Invalid nonce');
     }
 
@@ -86,7 +86,7 @@ if (!function_exists('microblog_submit')) {
     // Get the content, title, tags, and category from the AJAX request
     $content = isset($_POST['content']) ? sanitize_textarea_field(wp_unslash($_POST['content'])) : '';
     $title = isset($_POST['title']) ? sanitize_textarea_field(wp_unslash($_POST['title'])) : '';
-    $tags = isset($_POST['tags']) && is_array($_POST['tags']) ? array_map('sanitize_textarea_field', array_map('wp_unslash', $_POST['tags'])) : [];
+    $tags = isset($_POST['tags']) && is_array($_POST['tags']) ? array_map('sanitize_text_field', array_map('wp_unslash', $_POST['tags'])) : [];
     $category_id = isset($_POST['microblog_category']) ? intval($_POST['microblog_category']) : get_option('default_category');
     $post_type = get_option('microblog_post_type_setting');
 
@@ -185,7 +185,7 @@ if (!function_exists('microblog_post_type_taxonomy_field_callback')) {
     $taxonomies = get_taxonomies(array('public' => true), 'objects');
 
     echo '<select name="microblog_post_type_taxonomy">';
-    foreach ($ taxonomies as $taxonomy) {
+    foreach ($taxonomies as $taxonomy) {
       $selected = ($current_taxonomy == $taxonomy->name) ? 'selected' : '';
       echo '<option value="' . esc_attr($taxonomy->name) . '" ' . esc_attr($selected) . '>' . esc_html($taxonomy->label) . '</option>';
     }
