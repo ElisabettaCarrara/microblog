@@ -1,50 +1,98 @@
-.entry-content .microblog-form-container {
-    max-width: 100%;
-    margin: 2em 0;
+/* General styling for the form */
+.microblog-form {
+    max-width: 600px; /* Maximum width of the form */
+    margin: 0 auto; /* Center the form */
+    padding: 20px; /* Padding inside the form */
+    border: 1px solid #ccc; /* Border around the form */
+    border-radius: 8px; /* Rounded corners */
+    background-color: #f9f9f9; /* Light background color */
 }
 
-.entry-content #microblog-form {
+/* Styling for labels */
+.microblog-form label {
+    display: block; /* Block display for labels */
+    margin-bottom: 5px; /* Space below labels */
+    font-weight: bold; /* Bold text for labels */
+}
+
+/* Styling for input fields and textarea */
+.microblog-form input[type="text"],
+.microblog-form input[type="file"],
+.microblog-form select,
+.microblog-form textarea {
+    width: 100%; /* Full width for inputs */
+    padding: 10px; /* Padding inside inputs */
+    margin-bottom: 15px; /* Space below inputs */
+    border: 1px solid #ccc; /* Border around inputs */
+    border-radius: 4px; /* Rounded corners for inputs */
+}
+
+/* Styling for the WYSIWYG editor (if applicable) */
+.microblog-form .wp-editor-container {
+    margin-bottom: 15px; /* Space below the editor */
+}
+
+/* Button styling */
+.microblog-form button {
+    background-color: #0073aa; /* Button background color */
+    color: white; /* Button text color */
+    padding: 10px 15px; /* Padding inside button */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Rounded corners for button */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+/* Button hover effect */
+.microblog-form button:hover {
+    background-color: #005177; /* Darker shade on hover */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .microblog-form {
+        padding: 15px; /* Reduce padding on smaller screens */
+    }
+
+    .microblog-form input[type="text"],
+    .microblog-form select,
+    .microblog-form textarea {
+        padding: 8px; /* Reduce padding in inputs on smaller screens */
+        margin-bottom: 10px; /* Reduce space below inputs on smaller screens */
+    }
+
+    .microblog-form button {
+        width: 100%; /* Full width button on smaller screens */
+        padding: 12px; /* Adjust padding for button on smaller screens */
+    }
+}
+
+.microblog-posts {
     display: flex;
     flex-direction: column;
-    background: #f9f9f9;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
+    gap: 20px; /* Space between posts */
 }
 
-.entry-content #microblog-form textarea {
-    width: 100%;
-    min-height: 100px;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #d0d0d0;
-    border-radius: 4px;
-    font-size: 16px;
-    line-height: 1.4;
+.microblog-post {
+    border: 1px solid #ccc; /* Border around each post */
+    border-radius: 5px; /* Rounded corners */
+    padding: 15px; /* Padding inside each post */
+    background-color: #f9f9f9; /* Light background color */
 }
 
-.entry-content #microblog-form select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #d0d0d0;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 16px;
+.microblog-title {
+    font-size: 1.5em; /* Title size */
+    margin-bottom: 10px; /* Space below title */
 }
 
-.entry-content #microblog-form input[type="submit"] {
-    align-self: flex-start;
-    padding: 10px 20px;
-    background-color: #545454;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.microblog-content {
+    margin-bottom: 15px; /* Space below content */
 }
 
-.entry-content #microblog-form input[type="submit"]:hover {
-    background-color: #656565;
+.microblog-meta {
+    font-size: 0.9em; /* Smaller font for meta info */
+    color: #666; /* Gray color for meta info */
+}
+
+.microblog-thumbnail img {
+    max-width: 100%; /* Responsive thumbnail images */
 }
