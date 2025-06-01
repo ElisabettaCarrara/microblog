@@ -215,34 +215,35 @@ class Microblog_Plugin {
             }
         }
 
-       // Determine redirect URL
-if ( empty( $atts['redirect_after_submit'] ) ) {
-    $redirect_setting = $options['redirect_after_submit'] ?? 'display';
-    if ( 'home' === $redirect_setting ) {
-        $atts['redirect_after_submit'] = home_url( '/' );
-    } elseif ( 'custom' === $redirect_setting && ! empty( $options['redirect_custom_url'] ) ) {
-        $atts['redirect_after_submit'] = esc_url( $options['redirect_custom_url'] );
-    } else {
-        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-        $pages = get_pages( array(
-            'meta_key'   => '_wp_page_template',
-            'meta_value' => 'default',
-            'post_status' => 'publish',
-        ) );
-        $display_page_url = '';
+        // Determine redirect URL
+        if ( empty( $atts['redirect_after_submit'] ) ) {
+            $redirect_setting = $options['redirect_after_submit'] ?? 'display';
+            if ( 'home' === $redirect_setting ) {
+                $atts['redirect_after_submit'] = home_url( '/' );
+            } elseif ( 'custom' === $redirect_setting && ! empty( $options['redirect_custom_url'] ) ) {
+                $atts['redirect_after_submit'] = esc_url( $options['redirect_custom_url'] );
+            } else {
+                $pages = get_pages( array(
+                    'meta_key'   => '_wp_page_template',
+                    'meta_value' => 'default',
+                    'post_status' => 'publish',
+                ) );
+                $display_page_url = '';
 
-        foreach ( $pages as $page ) {
-            if ( has_shortcode( $page->post_content, 'microblog_display' ) ) {
-                $display_page_url = get_permalink( $page->ID );
-                break;
+                foreach ( $pages as $page ) {
+                    if ( has_shortcode( $page->post_content, 'microblog_display' ) ) {
+                        $display_page_url = get_permalink( $page->ID );
+                        break;
+                    }
+                }
+
+                $atts['redirect_after_submit'] = ! empty( $display_page_url ) ? $display_page_url : get_permalink();
             }
         }
 
-        $atts['redirect_after_submit'] = ! empty( $display_page_url ) ? $display_page_url : get_permalink();
+        return $this->render_microblog_form( $atts );
     }
-}
 
-return $this->render_microblog_form( $atts );
     /**
      * Render login prompt
      *
@@ -382,25 +383,19 @@ return $this->render_microblog_form( $atts );
             return;
         }
 
-        if (
-    empty( $file['tmp_name'] ) ||
-    empty( $file['name'] ) ||
-    ! file_exists( $file['tmp_name'] )
-) {
-    wp_send_json_error( array( 'message' => __( 'Upload failed: file missing.', 'microblog' ) ) );
-    return;
-}
+        if ( ! isset( $_FILES['image'] ) ) {
+            wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ) );
+            return;
+        }
 
-// Get real file type using WP function
-$file_info = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
-if (
-    empty( $file_info['ext'] ) ||
-    empty( $file_info['type'] ) ||
-    ! in_array( $file_info['type'], $allowed_types, true )
-) {
-    wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ) );
-    return;
-}
+        $file = $_FILES['image'];
+        $allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
+
+        if ( ! in_array( $file['type'], $allowed_types, true ) ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ) );
+            return;
+        }
+
         $max_file_size = $options['max_file_size'] ?? 5;
         if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
             wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), $max_file_size ) ) );
@@ -417,18 +412,6 @@ if (
             require_once ABSPATH . 'wp-admin/includes/media.php';
         }
 
-    // Check image dimensions
-    $image_size = getimagesize( $upload['file'] ); // returns [width, height, ...] or false
-        if ( ! $image_size ) {
-        wp_delete_file( $upload['file'] );
-        wp_send_json_error( array( 'message' => __( 'Could not determine image size.', 'microblog' ) ) );
-    return;
-}
-    if ( $image_size[0] > 400 || $image_size[1] > 400 ) {
-    wp_delete_file( $upload['file'] );
-    wp_send_json_error( array( 'message' => __( 'Image too large. Maximum allowed size is 400x400 pixels.', 'microblog' ) ) );
-    return;
-    }   
         $upload_overrides = array( 'test_form' => false );
         $upload = wp_handle_upload( $file, $upload_overrides );
 
@@ -571,16 +554,15 @@ if (
         );
 
         if ( ! empty( $atts['category'] ) ) {
-    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-    $args['tax_query'] = array(
-        array(
-            'taxonomy' => 'microblog_category',
-            'field'    => 'slug',
-            'terms'    => array_map( 'sanitize_title', explode( ',', $atts['category'] ) ),
-        ),
-    );
-}
-        
+            $args['tax_query'] = array(
+                array(
+                    'taxonomy' => 'microblog_category',
+                    'field'    => 'slug',
+                    'terms'    => array_map( 'sanitize_title', explode( ',', $atts['category'] ) ),
+                ),
+            );
+        }
+
         $query = new WP_Query( $args );
 
         if ( ! $query->have_posts() ) {
