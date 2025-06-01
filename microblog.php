@@ -223,6 +223,8 @@ class Microblog_Plugin {
             } elseif ( 'custom' === $redirect_setting && ! empty( $options['redirect_custom_url'] ) ) {
                 $atts['redirect_after_submit'] = esc_url( $options['redirect_custom_url'] );
             } else {
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
                 $pages = get_pages( array(
                     'meta_key'   => '_wp_page_template',
                     'meta_value' => 'default',
@@ -357,94 +359,109 @@ class Microblog_Plugin {
         return ob_get_clean();
     }
 
-    /**
-     * Handle image upload via AJAX
-     */
-    public function handle_image_upload(): void {
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'microblog_nonce' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
-            return;
-        }
-
-        if ( ! is_user_logged_in() ) {
-            wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'microblog' ) ), 401 );
-            return;
-        }
-
-        $options = get_option('microblog_settings');
-        $allowed_roles = $options['allowed_roles'] ?? array( 'administrator' );
-        $user = wp_get_current_user();
-        $can_post = array_reduce( $user->roles, function ( $carry, $role ) use ( $allowed_roles ) {
-            return $carry || in_array( $role, $allowed_roles, true );
-        }, false );
-
-        if ( ! $can_post ) {
-            wp_send_json_error( array( 'message' => __( 'You do not have permission to upload images.', 'microblog' ) ), 403 );
-            return;
-        }
-
-        if ( ! isset( $_FILES['image'] ) ) {
-            wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ) );
-            return;
-        }
-
-        $file = $_FILES['image'];
-        $allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
-
-        if ( ! in_array( $file['type'], $allowed_types, true ) ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ) );
-            return;
-        }
-
-        $max_file_size = $options['max_file_size'] ?? 5;
-        if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
-            wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), $max_file_size ) ) );
-            return;
-        }
-
-        if ( ! function_exists( 'wp_handle_upload' ) ) {
-            require_once ABSPATH . 'wp-admin/includes/file.php';
-        }
-        if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-            require_once ABSPATH . 'wp-admin/includes/image.php';
-        }
-        if ( ! function_exists( 'media_handle_upload' ) ) {
-            require_once ABSPATH . 'wp-admin/includes/media.php';
-        }
-
-        $upload_overrides = array( 'test_form' => false );
-        $upload = wp_handle_upload( $file, $upload_overrides );
-
-        if ( isset( $upload['error'] ) ) {
-            wp_send_json_error( array( 'message' => $upload['error'] ) );
-            return;
-        }
-
-        $attachment = array(
-            'post_mime_type' => $upload['type'],
-            'post_title'     => sanitize_file_name( $file['name'] ),
-            'post_content'   => '',
-            'post_status'    => 'inherit',
-        );
-
-        $attachment_id = wp_insert_attachment( $attachment, $upload['file'] );
-
-        if ( is_wp_error( $attachment_id ) ) {
-            wp_delete_file( $upload['file'] );
-            wp_send_json_error( array( 'message' => __( 'Failed to create attachment.', 'microblog' ) . $attachment_id->get_error_message() ) );
-            return;
-        }
-
-        $attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
-        wp_update_attachment_metadata( $attachment_id, $attachment_data );
-
-        $image_url = wp_get_attachment_image_url( $attachment_id, 'medium' );
-
-        wp_send_json_success( array(
-            'attachment_id' => $attachment_id,
-            'image_url'     => $image_url,
-        ) );
+   /**
+ * Handle image upload via AJAX.
+ */
+public function handle_image_upload(): void {
+    // Check nonce for security.
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'microblog_nonce' ) ) {
+        wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
+        return;
     }
+
+    // Ensure the user is logged in.
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( array( 'message' => __( 'Unauthorized.', 'microblog' ) ), 401 );
+        return;
+    }
+
+    // Fetch settings and validate user role.
+    $options = get_option( 'microblog_settings' );
+    $allowed_roles = isset( $options['allowed_roles'] ) ? $options['allowed_roles'] : array( 'administrator' );
+    $user = wp_get_current_user();
+    $can_post = array_reduce( $user->roles, static function ( $carry, $role ) use ( $allowed_roles ) {
+        return $carry || in_array( $role, $allowed_roles, true );
+    }, false );
+
+    if ( ! $can_post ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to upload images.', 'microblog' ) ), 403 );
+        return;
+    }
+
+    // Check if image file is provided.
+    if ( empty( $_FILES['image'] ) ) {
+        wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ) );
+        return;
+    }
+
+    $file = $_FILES['image'];
+    $allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
+
+    // Validate file type.
+    if ( ! in_array( $file['type'], $allowed_types, true ) ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ) );
+        return;
+    }
+
+    // Validate file size.
+    $max_file_size = isset( $options['max_file_size'] ) ? $options['max_file_size'] : 5;
+    if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
+        wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), esc_html( $max_file_size ) ) ) );
+        return;
+    }
+
+    // Ensure required WP functions are available.
+    if ( ! function_exists( 'wp_handle_upload' ) ) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+    if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+    }
+    if ( ! function_exists( 'media_handle_upload' ) ) {
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+    }
+
+    // Upload the file.
+    $upload_overrides = array( 'test_form' => false );
+    $upload = wp_handle_upload( $file, $upload_overrides );
+
+    // Check for upload errors.
+    if ( isset( $upload['error'] ) ) {
+        wp_send_json_error( array( 'message' => $upload['error'] ) );
+        return;
+    }
+
+    // Prepare the attachment array for the database.
+    $attachment = array(
+        'post_mime_type' => $upload['type'],
+        'post_title'     => sanitize_file_name( $file['name'] ),
+        'post_content'   => '',
+        'post_status'    => 'inherit',
+    );
+
+    // Insert the attachment into the database.
+    $attachment_id = wp_insert_attachment( $attachment, $upload['file'] );
+
+    // Check for WP error when creating the attachment.
+    if ( is_wp_error( $attachment_id ) ) {
+        wp_delete_file( $upload['file'] ); // Cleanup the file.
+        wp_send_json_error( array( 'message' => __( 'Failed to create attachment.', 'microblog' ) . $attachment_id->get_error_message() ) );
+        return;
+    }
+
+    // Generate and update attachment metadata.
+    $attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+    wp_update_attachment_metadata( $attachment_id, $attachment_data );
+
+    // Retrieve the image URL.
+    $image_url = wp_get_attachment_image_url( $attachment_id, 'medium' );
+
+    // Return success response.
+    wp_send_json_success( array(
+        'attachment_id' => $attachment_id,
+        'image_url'     => esc_url( $image_url ),
+    ) );
+}
 
     /**
      * Handle post submission via AJAX
@@ -472,8 +489,8 @@ class Microblog_Plugin {
             return;
         }
 
-        $title        = isset( $_POST['title'] ) ? sanitize_text_field( $_POST['title'] ) : '';
-        $content      = isset( $_POST['content'] ) ? wp_kses_post( $_POST['content'] ) : '';
+        $title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+        $content      = isset( $_POST['content'] ) ? sanitize_text_field( wp_unslash( $_POST['content'] ) : '';
         $category_id  = isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0;
         $thumbnail_id = isset( $_POST['thumbnail'] ) ? absint( $_POST['thumbnail'] ) : 0;
 
@@ -554,6 +571,7 @@ class Microblog_Plugin {
         );
 
         if ( ! empty( $atts['category'] ) ) {
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
             $args['tax_query'] = array(
                 array(
                     'taxonomy' => 'microblog_category',
