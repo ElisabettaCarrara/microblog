@@ -526,10 +526,10 @@ if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
      * Handle post submission via AJAX
      */
     public function handle_post_submission(): void {
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'microblog_nonce' ) ) {
-        wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
-        return;
-    }
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'microblog_nonce' ) ) {
+    wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
+    return;
+}
 
     if ( ! is_user_logged_in() ) {
         wp_send_json_error( array( 'message' => __( 'You must be logged in to submit posts.', 'microblog' ) ), 401 );
@@ -559,7 +559,7 @@ if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
     }
 
     $char_limit = $options['character_limit'] ?? 0;
-    if ( $char_limit > 0 && mb_strlen( strip_tags( $content ) ) > $char_limit ) {
+    if ( $char_limit > 0 && mb_strlen( strip_all_tags( $content ) ) > $char_limit ) {
         wp_send_json_error( array( 'message' => sprintf( __( 'Content exceeds character limit of %d.', 'microblog' ), $char_limit ) ) );
         return;
     }
