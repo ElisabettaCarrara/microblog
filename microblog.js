@@ -525,38 +525,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 				// End DOMContentLoaded
-
-**Key recommendations for your PHP and setup:**
-
-1.  **Reconcile jQuery Dependency:** In `Microblog_Plugin::enqueue_scripts()`, change `array('jquery')` to `array()` if this Vanilla JS is the final version.
-2.  **Localization (`l10n`):** I've added placeholders like `microblog_ajax.l10n?.someText || 'Default Text'`. You should add these translatable strings to your `wp_localize_script` call in PHP if you want to make them easily translatable and configurable from PHP. For example:
-    ```php
-    // In Microblog_Plugin::enqueue_scripts()
-    wp_localize_script( 'microblog-js', 'microblog_ajax', array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce'    => wp_create_nonce( 'microblog_nonce' ),
-        'maxFileSizeMB' => get_option('microblog_settings')['max_file_size'] ?? 5, // Pass max file size
-        'l10n'     => array(
-            'selectImageTitle' => __( 'Select or Upload Image', 'microblog' ),
-            'useImageButton'   => __( 'Use This Image', 'microblog' ),
-            'invalidFileType'  => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ),
-            'invalidFileTypeFallback' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ),
-            'fileTooLarge'     => __( 'File is too large. Maximum size is %s MB.', 'microblog' ), // %s will be replaced by JS
-            'uploadingImage'   => __( 'Uploading image...', 'microblog' ),
-            'imageUploadedSuccess' => __( 'Image uploaded successfully!', 'microblog' ),
-            'uploadFailed'     => __( 'Upload failed.', 'microblog' ),
-            'uploadError'      => __( 'Upload failed. Please try again.', 'microblog' ),
-            'changeImageButton'=> __( 'Change Image', 'microblog' ),
-            'chooseImageButton'=> __( 'Choose Image', 'microblog' ),
-            'imagePreviewAlt'  => __( 'Selected image preview', 'microblog' ),
-            'titleRequired'    => __( 'Title is required.', 'microblog' ),
-            // 'contentRequired'  => __( 'Content is required.', 'microblog' ), // Removed as per new logic
-            'submitting'       => __( 'Submitting...', 'microblog' ),
-            'submittingPost'   => __( 'Submitting post...', 'microblog' ),
-            'postSubmittedSuccess' => __( 'Post submitted successfully!', 'microblog' ),
-            'submissionFailed' => __( 'Submission failed.', 'microblog' ),
-            'submissionError'  => __( 'Submission failed. Please try again.', 'microblog' ),
-            'submitButtonDefault' => __( 'Submit Post', 'microblog' ),
-            'uploadHelpText'   => __( 'Supported formats: JPG, PNG, WebP, GIF. Maximum one image.', 'microblog' ),
-        )
-    ) );
