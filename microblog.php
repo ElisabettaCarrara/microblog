@@ -933,9 +933,6 @@ public function render_redirect_field(): void {
     $current = $options['redirect_after_submit'] ?? 'display';
     ?>
     <select id="microblog_redirect_after_submit" name="microblog_settings[redirect_after_submit]">
-        <option value="display" <?php selected( $current, 'display' ); ?>>
-            <?php esc_html_e( 'Display Page with Posts', 'microblog' ); ?>
-        </option>
         <option value="home" <?php selected( $current, 'home' ); ?>>
             <?php esc_html_e( 'Home Page', 'microblog' ); ?>
         </option>
