@@ -1,7 +1,8 @@
 === MicroBlog ===
 Contributors: Elisabetta Carrara
 Tags: microblog, frontend, front-end
-Requires CP: 1.0
+Requires CP: 2.0
+Tested up to CP: 2.4.1
 Requires PHP: 8.1
 Stable tag: 1.0
 License: GPLv2 or later
