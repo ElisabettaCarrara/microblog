@@ -15,16 +15,16 @@ if ( ! defined( 'MICROBLOG_V2_MIGRATION_VERSION' ) ) {
 	define( 'MICROBLOG_V2_MIGRATION_VERSION', '2.0.0' ); // The first v2 version requiring these CPT/taxonomy changes.
 }
 if ( ! defined( 'MICROBLOG_DB_VERSION_OPTION_KEY' ) ) {
-	define( 'MICROBLOG_DB_VERSION_OPTION_KEY', 'my_microblog_db_version' ); // Option key for plugin's data/database version.
+	define( 'MICROBLOG_DB_VERSION_OPTION_KEY', 'microblog_db_version' ); // Option key for plugin's data/database version.
 }
 if ( ! defined( 'MICROBLOG_ORPHAN_CHECK_DONE_FLAG' ) ) {
-	define( 'MY_MICROBLOG_ORPHAN_CHECK_DONE_FLAG', 'my_microblog_v2_orphaned_check_done' ); // Flag for the orphan check.
+	define( 'MY_MICROBLOG_ORPHAN_CHECK_DONE_FLAG', 'microblog_v2_orphaned_check_done' ); // Flag for the orphan check.
 }
 if ( ! defined( 'MICROBLOG_MIGRATION_V1_V2_FLAG' ) ) {
 	define( 'MY_MICROBLOG_MIGRATION_V1_V2_FLAG', 'microblog_v1_data_migrated_to_v2_specific_flag' ); // Flag for the main v1 to v2 migration.
 }
 if ( ! defined( 'MICROBLOG_TEXT_DOMAIN' ) ) {
-	define( 'MICROBLOG_TEXT_DOMAIN', 'my-microblog-plugin' ); // Replace with your plugin's text domain.
+	define( 'MICROBLOG_TEXT_DOMAIN', 'microblog' ); // Replace with your plugin's text domain.
 }
 
 /**
@@ -190,7 +190,7 @@ function run_microblog_v1_to_v2_migration() {
 					<?php
 					printf(
 						/* translators: %s: microblog */
-						esc_html__( 'Microblog plugin data has been successfully migrated to the new format. If you encounter any issues, please check our support channels.', MICROBLOG_TEXT_DOMAIN )
+						esc_html__( 'Microblog plugin data has been successfully migrated to the new format. If you encounter any issues, please check our support channels.', 'microblog' )
 					);
 					?>
 				</p>
