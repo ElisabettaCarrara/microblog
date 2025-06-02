@@ -418,11 +418,19 @@ public function handle_image_upload(): void {
         return;
     }
 
-    // Unsplash the entire $_FILES['image'] array before processing.
-    $file = wp_unslash( $_FILES['image'] );
+    // Unsplash and sanitize each $_FILES['image'] field.
+    $raw_file = wp_unslash( $_FILES['image'] );
+
+    $file = array(
+        'name'     => sanitize_file_name( $raw_file['name'] ?? '' ),
+        'type'     => sanitize_text_field( $raw_file['type'] ?? '' ),
+        'tmp_name' => sanitize_text_field( $raw_file['tmp_name'] ?? '' ),
+        'error'    => isset( $raw_file['error'] ) ? (int) $raw_file['error'] : UPLOAD_ERR_NO_FILE,
+        'size'     => isset( $raw_file['size'] ) ? (int) $raw_file['size'] : 0,
+    );
 
     // Check for upload errors.
-    if ( ! empty( $file['error'] ) ) {
+    if ( $file['error'] !== UPLOAD_ERR_OK ) {
         $upload_errors = array(
             UPLOAD_ERR_INI_SIZE   => __( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.', 'microblog' ),
             UPLOAD_ERR_FORM_SIZE  => __( 'The uploaded file exceeds the MAX_FILE_SIZE directive specified in the HTML form.', 'microblog' ),
@@ -433,7 +441,7 @@ public function handle_image_upload(): void {
             UPLOAD_ERR_EXTENSION  => __( 'A PHP extension stopped the file upload.', 'microblog' ),
         );
 
-        $error_message = isset( $upload_errors[ $file['error'] ] ) ? $upload_errors[ $file['error'] ] : __( 'Unknown upload error.', 'microblog' );
+        $error_message = $upload_errors[ $file['error'] ] ?? __( 'Unknown upload error.', 'microblog' );
 
         wp_send_json_error( array( 'message' => $error_message ), 400 );
         return;
@@ -479,7 +487,7 @@ public function handle_image_upload(): void {
     // Prepare the attachment array for the database.
     $attachment = array(
         'post_mime_type' => $upload['type'],
-        'post_title'     => sanitize_file_name( $file['name'] ),
+        'post_title'     => $file['name'],
         'post_content'   => '',
         'post_status'    => 'inherit',
     );
