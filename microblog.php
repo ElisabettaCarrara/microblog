@@ -415,16 +415,18 @@ public function handle_image_upload(): void {
         return;
     }
 
-    // Check if image file is provided.
-if ( empty( $_FILES['image'] ) ) {
+    // Unslash entire $_FILES array first.
+$files = wp_unslash( $_FILES );
+
+// Check if image file is provided (on unslashed data).
+if ( empty( $files['image'] ) ) {
     wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ), 400 );
     return;
 }
 
-// Unsplash entire $_FILES['image'] array first.
-$raw_file = wp_unslash( $_FILES['image'] );
-
 // Sanitize individual fields.
+$raw_file = $files['image'];
+
 $file = array(
     'name'     => sanitize_file_name( $raw_file['name'] ?? '' ),
     'type'     => sanitize_text_field( $raw_file['type'] ?? '' ),
