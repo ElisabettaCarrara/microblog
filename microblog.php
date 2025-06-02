@@ -62,6 +62,168 @@ class Microblog_Plugin {
         add_action( 'admin_init', array( $this, 'register_settings' ) );
     }
 
+// This logic would ideally run once upon plugin activation or a specific version check.
+
+    // Define the current version of your plugin
+define('MY_MICROBLOG_PLUGIN_VERSION', '2.0.0'); // This should match your plugin header Version
+
+// Define the version that introduced the CPT and taxonomy changes (i.e., the first v2 version)
+define('MY_MICROBLOG_V2_MIGRATION_VERSION', '2.0.0');
+
+// Option key to store the plugin's data/database version
+define('MY_MICROBLOG_DB_VERSION_OPTION_KEY', 'my_microblog_db_version');
+
+/**
+ * Check versions and run migration if needed.
+ */
+function my_microblog_check_for_upgrade() {
+    // Get the currently stored database version for your plugin
+    $current_db_version = get_option(MY_MICROBLOG_DB_VERSION_OPTION_KEY);
+
+    // If no DB version is stored, it could be a fresh install or an upgrade from a very old version
+    // that didn't have version tracking.
+    if ($current_db_version === false) {
+        // For a truly fresh install of v2.0.0+, we don't run the v1->v2 migration.
+        // We just set the DB version to the current plugin version.
+        // If it was an upgrade from a v1 that had no version tracking,
+        // you might assume it needs migration. Let's refine this.
+
+        // If it's a fresh install of version 2.0.0 or newer, no migration needed from v1.
+        // If they had an ancient v1 without this version option, and install v2,
+        // we need to ensure migration runs.
+        // A simple way: if the option is not set, and current plugin version IS the migration version or newer,
+        // assume it might be an upgrade from a very old v1.
+        // However, the safest is to run migration only if current_db_version < V2_MIGRATION_VERSION.
+        // Let's assume if $current_db_version is false, it's either a fresh install or an upgrade from a version
+        // prior to 2.0.0 that did NOT have the MY_MICROBLOG_DB_VERSION_OPTION_KEY.
+        // We can default it to something like '1.0.0' to trigger the migration.
+        $default_for_no_option = '1.0.0'; // Assume any version before V2_MIGRATION_VERSION
+
+        // Only consider migration if the current plugin is actually at or beyond the migration target.
+        if (version_compare(MY_MICROBLOG_PLUGIN_VERSION, MY_MICROBLOG_V2_MIGRATION_VERSION, '>=')) {
+            // If the option was never set, treat it as a version that needs migration.
+             if ($current_db_version === false) {
+                $current_db_version = $default_for_no_option; // Pretend it's v1.x
+             }
+        } else {
+            // If current plugin isn't even V2_MIGRATION_VERSION yet, do nothing now.
+            // (This case is unlikely if this code is IN V2_MIGRATION_VERSION)
+            return;
+        }
+    }
+
+    // Compare the stored DB version with the version that requires migration (MY_MICROBLOG_V2_MIGRATION_VERSION)
+    // And ensure the current plugin version is at least the migration version.
+    if (version_compare($current_db_version, MY_MICROBLOG_V2_MIGRATION_VERSION, '<') &&
+        version_compare(MY_MICROBLOG_PLUGIN_VERSION, MY_MICROBLOG_V2_MIGRATION_VERSION, '>=')) {
+
+        // Time to run the migration from v1 to v2!
+        run_microblog_v1_to_v2_migration(); // Your migration function defined previously
+
+        // After successful migration, update the DB version to the current plugin version.
+        update_option(MY_MICROBLOG_DB_VERSION_OPTION_KEY, MY_MICROBLOG_PLUGIN_VERSION);
+
+    } elseif (version_compare($current_db_version, MY_MICROBLOG_PLUGIN_VERSION, '<')) {
+        // If the DB version is older than the current plugin version, but not requiring the v1->v2 migration
+        // (e.g., upgrading from 2.0.0 to 2.1.0), just update the DB version.
+        // This path also handles the case of a fresh install where $current_db_version was initially false
+        // and MY_MICROBLOG_PLUGIN_VERSION is >= MY_MICROBLOG_V2_MIGRATION_VERSION,
+        // but we didn't take the migration path because we assume a fresh install of v2+ does not need v1 data.
+        // To make fresh installs of v2 skip migration, we modify the condition above or handle $current_db_version === false explicitly earlier.
+
+        // Refined logic for fresh install vs upgrade:
+        // Let's re-evaluate:
+        // 1. Get stored_version.
+        // 2. If stored_version is FALSE (never set):
+        //    This is a fresh install. Set stored_version to MY_MICROBLOG_PLUGIN_VERSION. Do NOT migrate.
+        // 3. If stored_version is NOT FALSE:
+        //    It's an upgrade.
+        //    If stored_version < MY_MICROBLOG_V2_MIGRATION_VERSION AND MY_MICROBLOG_PLUGIN_VERSION >= MY_MICROBLOG_V2_MIGRATION_VERSION:
+        //        Run migration.
+        //        Update stored_version to MY_MICROBLOG_PLUGIN_VERSION.
+        //    Else if stored_version < MY_MICROBLOG_PLUGIN_VERSION: (e.g. 2.0 to 2.1)
+        //        No v1->v2 migration needed, but update stored_version to MY_MICROBLOG_PLUGIN_VERSION.
+
+        // So, the initial block should be:
+        if ($current_db_version === false) {
+            // Fresh install of the current version. No migration needed.
+            update_option(MY_MICROBLOG_DB_VERSION_OPTION_KEY, MY_MICROBLOG_PLUGIN_VERSION);
+            return; // Exit, nothing more to do for a fresh install regarding v1 migration.
+        }
+
+        // If we are here, $current_db_version is set, so it's an upgrade.
+        // The original IF for migration is now correct:
+        // if (version_compare($current_db_version, MY_MICROBLOG_V2_MIGRATION_VERSION, '<') &&
+        //     version_compare(MY_MICROBLOG_PLUGIN_VERSION, MY_MICROBLOG_V2_MIGRATION_VERSION, '>=')) { ... }
+
+        // Then, if migration happened OR if it wasn't needed but version is still old:
+        if (version_compare($current_db_version, MY_MICROBLOG_PLUGIN_VERSION, '<')) {
+            update_option(MY_MICROBLOG_DB_VERSION_OPTION_KEY, MY_MICROBLOG_PLUGIN_VERSION);
+        }
+    }
+}
+add_action('admin_init', 'my_microblog_check_for_upgrade');
+
+/**
+ * Your migration function (as discussed before)
+ * This should include its own one-time flag as a failsafe if you want extra safety,
+ * but the version check above should typically handle it.
+ */
+function run_microblog_v1_to_v2_migration() {
+    // Failsafe: check if migration has already run using a separate option
+    if (get_option('microblog_v1_data_migrated_to_v2_specific_flag')) {
+        return;
+    }
+
+    // ... your migration logic here ...
+    // (Get old posts, update post_type, remap taxonomies)
+    global $wpdb;
+
+    $args = array(
+        'post_type'      => 'microblog', // v1 post type
+        'posts_per_page' => -1,
+        'post_status'    => 'any',
+    );
+    $old_posts = get_posts($args);
+
+    if (empty($old_posts)) {
+        update_option('microblog_v1_data_migrated_to_v2_specific_flag', true);
+        return;
+    }
+
+    $v1_taxonomy = 'microblog_tag';
+    $v2_taxonomy = 'microblog_category';
+    $v2_post_type = 'cp_microblog'; // v2 post type
+
+    foreach ($old_posts as $post) {
+        $post_id = $post->ID;
+
+        // Migrate Taxonomy
+        $terms = wp_get_object_terms($post_id, $v1_taxonomy, array('fields' => 'ids'));
+        if (!is_wp_error($terms) && !empty($terms)) {
+            wp_set_object_terms($post_id, $terms, $v2_taxonomy, false);
+        }
+
+        // Update post type
+        $wpdb->update(
+            $wpdb->posts,
+            array('post_type' => $v2_post_type),
+            array('ID' => $post_id),
+            array('%s'),
+            array('%d')
+        );
+        clean_post_cache($post_id);
+    }
+
+    // Set the failsafe flag
+    update_option('microblog_v1_data_migrated_to_v2_specific_flag', true);
+
+    // Optional: A notice to the admin
+    add_action('admin_notices', function() {
+        echo '<div class="notice notice-success is-dismissible"><p>Microblog plugin data successfully migrated to v2 format.</p></div>';
+    });
+}
+    
     /**
      * Initialize plugin
      */
