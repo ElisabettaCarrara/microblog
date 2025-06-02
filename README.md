@@ -8,6 +8,8 @@ Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
+https://github.com/ElisabettaCarrara/microblog/blob/main/images/microblog.png
+
 Post Microblogs from the front-end and show them on a dedicated page.
 
 == UPDATE NOTICE ==
