@@ -168,54 +168,61 @@ class Microblog_Plugin {
         add_shortcode( 'microblog_display', array( $this, 'render_display_shortcode' ) );
     }
 
-    /**
-     * Enqueue scripts and styles
-     */
     public function enqueue_scripts(): void {
-        wp_enqueue_script( 'microblog-js', plugin_dir_url( __FILE__ ) . 'microblog.js', array(), self::VERSION, true );
-        wp_enqueue_style( 'microblog-css', plugin_dir_url( __FILE__ ) . 'microblog.css', array(), self::VERSION );
+    wp_enqueue_script(
+        'microblog-js',
+        plugin_dir_url(__FILE__) . 'microblog.js',
+        array(),
+        self::VERSION,
+        true
+    );
+    wp_enqueue_style(
+        'microblog-css',
+        plugin_dir_url(__FILE__) . 'microblog.css',
+        array(),
+        self::VERSION
+    );
 
-        wp_localize_script( 'microblog-js', 'microblog_ajax', array(
-            'ajax_url' => admin_url( 'admin-ajax.php' ),
-            'nonce'    => wp_create_nonce( 'microblog_nonce' ),
-        ) );
-
-        // Enqueue media scripts for frontend
-        if ( is_user_logged_in() && ( is_singular() || is_page() ) ) {
-            global $post;
-            if ( $post && has_shortcode( $post->post_content, 'microblog_form' ) ) {
-                wp_enqueue_media();
-            }
+    // Enqueue media scripts for frontend
+    if (is_user_logged_in() && (is_singular() || is_page())) {
+        global $post;
+        if ($post && has_shortcode($post->post_content, 'microblog_form')) {
+            wp_enqueue_media();
         }
     }
 
-    wp_localize_script( 'microblog-js', 'microblog_ajax', array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce'    => wp_create_nonce( 'microblog_nonce' ),
-        'maxFileSizeMB' => get_option('microblog_settings')['max_file_size'] ?? 5, // Pass max file size
-        'l10n'     => array(
-        'selectImageTitle' => __( 'Select or Upload Image', 'microblog' ),
-        'useImageButton'   => __( 'Use This Image', 'microblog' ),
-        'invalidFileType'  => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ),
-        'invalidFileTypeFallback' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ),
-        'fileTooLarge'     => __( 'File is too large. Maximum size is %s MB.', 'microblog' ), // %s will be replaced by JS
-        'uploadingImage'   => __( 'Uploading image...', 'microblog' ),
-        'imageUploadedSuccess' => __( 'Image uploaded successfully!', 'microblog' ),
-        'uploadFailed'     => __( 'Upload failed.', 'microblog' ),
-        'uploadError'      => __( 'Upload failed. Please try again.', 'microblog' ),
-        'changeImageButton'=> __( 'Change Image', 'microblog' ),
-        'chooseImageButton'=> __( 'Choose Image', 'microblog' ),
-        'imagePreviewAlt'  => __( 'Selected image preview', 'microblog' ),
-        'titleRequired'    => __( 'Title is required.', 'microblog' ),
-        'submitting'       => __( 'Submitting...', 'microblog' ),
-        'submittingPost'   => __( 'Submitting post...', 'microblog' ),
-        'postSubmittedSuccess' => __( 'Post submitted successfully!', 'microblog' ),
-        'submissionFailed' => __( 'Submission failed.', 'microblog' ),
-        'submissionError'  => __( 'Submission failed. Please try again.', 'microblog' ),
-        'submitButtonDefault' => __( 'Submit Post', 'microblog' ),Add commentMore actions
-        'uploadHelpText'   => __( 'Supported formats: JPG, PNG, WebP, GIF. Maximum one image.', 'microblog' ),
-        )
-    ) );
+    // Safely get max file size from options
+    $settings = get_option('microblog_settings');
+    $max_file_size = isset($settings['max_file_size']) ? $settings['max_file_size'] : 5;
+
+    wp_localize_script('microblog-js', 'microblog_ajax', array(
+        'ajax_url'      => admin_url('admin-ajax.php'),
+        'nonce'         => wp_create_nonce('microblog_nonce'),
+        'maxFileSizeMB' => $max_file_size,
+        'l10n'          => array(
+            'selectImageTitle'        => __('Select or Upload Image', 'microblog'),
+            'useImageButton'          => __('Use This Image', 'microblog'),
+            'invalidFileType'         => __('Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog'),
+            'invalidFileTypeFallback' => __('Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog'),
+            'fileTooLarge'            => __('File is too large. Maximum size is %s MB.', 'microblog'),
+            'uploadingImage'          => __('Uploading image...', 'microblog'),
+            'imageUploadedSuccess'    => __('Image uploaded successfully!', 'microblog'),
+            'uploadFailed'            => __('Upload failed.', 'microblog'),
+            'uploadError'             => __('Upload failed. Please try again.', 'microblog'),
+            'changeImageButton'       => __('Change Image', 'microblog'),
+            'chooseImageButton'       => __('Choose Image', 'microblog'),
+            'imagePreviewAlt'         => __('Selected image preview', 'microblog'),
+            'titleRequired'           => __('Title is required.', 'microblog'),
+            'submitting'              => __('Submitting...', 'microblog'),
+            'submittingPost'          => __('Submitting post...', 'microblog'),
+            'postSubmittedSuccess'    => __('Post submitted successfully!', 'microblog'),
+            'submissionFailed'        => __('Submission failed.', 'microblog'),
+            'submissionError'         => __('Submission failed. Please try again.', 'microblog'),
+            'submitButtonDefault'     => __('Submit Post', 'microblog'),
+            'uploadHelpText'          => __('Supported formats: JPG, PNG, WebP, GIF. Maximum one image.', 'microblog'),
+        ),
+    ));
+}
 
     /**
      * Render form shortcode
