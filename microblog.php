@@ -1122,15 +1122,14 @@ private function get_default_settings(): array {
                 <h2 class="title"><?php esc_html_e( 'Shortcodes', 'microblog' ); ?></h2>
 
                 <h3><?php esc_html_e( 'Submission Form: ', 'microblog' ); ?><code>[microblog_form]</code></h3>
-                <p><?php esc_html_e( 'Displays the front-end submission form for creating new microblog posts.', 'microblog' ); ?></p>
+                <p><?php esc_html_e( 'Displays the front-end submission form to create new microblog posts.', 'microblog' ); ?></p>
                 <p><strong><?php esc_html_e( 'Parameters:', 'microblog' ); ?></strong></p>
                 <ul>
                     <li><code>redirect_after_submit</code>: <?php esc_html_e( 'Overrides the global redirect setting. Options:', 'microblog' ); ?>
                         <ul>
-                            <li><code>display</code>: <?php esc_html_e( 'Redirects to a page containing the [microblog_display] shortcode.', 'microblog' ); ?></li>
                             <li><code>home</code>: <?php esc_html_e( 'Redirects to the site\'s home page.', 'microblog' ); ?></li>
                             <li><code>current</code>: <?php esc_html_e( 'Redirects to the current page where the form is located.', 'microblog' ); ?></li>
-                            <li><em><?php esc_html_e( 'custom_url', 'microblog' ); ?></em>: <?php esc_html_e( 'Provide a full URL like "https://example.com/thanks".', 'microblog' ); ?></li>
+                            <li><em><?php esc_html_e( 'custom_url', 'microblog' ); ?></em>: <?php esc_html_e( 'You can use this setting to redirect to the page showing Microblogs. Provide a full URL like "https://example.com/thanks".', 'microblog' ); ?></li>
                         </ul>
                         <?php esc_html_e( 'Example: ', 'microblog' ); ?><code>[microblog_form redirect_after_submit="home"]</code>
                     </li>
