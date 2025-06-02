@@ -172,7 +172,7 @@ class Microblog_Plugin {
      * Enqueue scripts and styles
      */
     public function enqueue_scripts(): void {
-        wp_enqueue_script( 'microblog-js', plugin_dir_url( __FILE__ ) . 'microblog.js', array( 'jquery' ), self::VERSION, true );
+        wp_enqueue_script( 'microblog-js', plugin_dir_url( __FILE__ ) . 'microblog.js', array(), self::VERSION, true );
         wp_enqueue_style( 'microblog-css', plugin_dir_url( __FILE__ ) . 'microblog.css', array(), self::VERSION );
 
         wp_localize_script( 'microblog-js', 'microblog_ajax', array(
