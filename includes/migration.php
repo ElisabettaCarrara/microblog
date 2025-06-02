@@ -27,6 +27,63 @@ if ( ! defined( 'MICROBLOG_TEXT_DOMAIN' ) ) {
 	define( 'MICROBLOG_TEXT_DOMAIN', 'microblog' ); // Plugin's text domain.
 }
 
+// Hook to show admin notice on admin pages
+add_action('admin_notices', 'microblog_v2_upgrade_notice');
+
+function microblog_v2_upgrade_notice() {
+    // Check if the notice has been dismissed
+    if ( get_user_meta(get_current_user_id(), 'microblog_v2_notice_dismissed', true) ) {
+        return; // Notice dismissed, do not show
+    }
+
+    // Only show to users who can manage options (admins)
+    if ( ! current_user_can('manage_options') ) {
+        return;
+    }
+
+    // Output the dismissable notice HTML
+    ?>
+    <div class="notice notice-warning is-dismissible" id="microblog-v2-upgrade-notice">
+        <p>
+            <strong>IMPORTANT NOTICE:</strong> The shortcodes used in v1 are different from those used in v2. In v2 you need to use the <code>[microblog_form]</code> shortcode to display the form to submit Microblogs and the <code>[microblog_display]</code> shortcode to display published Microblogs. You need to place them on two separate pages and include them into your menu. At that point you can remove the old shortcodes since the plugin performs old Microblogs migration to v2.
+        </p>
+    </div>
+    <script type="text/javascript">
+    (function($){
+        $('#microblog-v2-upgrade-notice').on('click', '.notice-dismiss', function(){
+            // Ajax call to mark notice as dismissed for current user
+            $.post(ajaxurl, {
+                action: 'microblog_dismiss_notice'
+            });
+        });
+    })(jQuery);
+    </script>
+    <?php
+}
+
+// Ajax handler to save dismissal
+add_action('wp_ajax_microblog_dismiss_notice', 'microblog_dismiss_notice_callback');
+
+function microblog_dismiss_notice_callback() {
+    if ( ! current_user_can('manage_options') ) {
+        wp_send_json_error();
+    }
+    update_user_meta(get_current_user_id(), 'microblog_v2_notice_dismissed', 1);
+    wp_send_json_success();
+}
+
+// Optional: Show notice only once after activation or upgrade
+// For example, set a transient or option on plugin activation or version upgrade
+register_activation_hook(__FILE__, 'microblog_v2_set_notice_flag');
+
+function microblog_v2_set_notice_flag() {
+    // Clear dismissal so notice shows after activation
+    $users = get_users(array('fields' => 'ID'));
+    foreach ($users as $user_id) {
+        delete_user_meta($user_id, 'microblog_v2_notice_dismissed');
+    }
+}
+
 /**
  * Handles plugin activation.
  * Sets the initial database version if it's not already set.
