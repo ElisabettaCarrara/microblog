@@ -17,6 +17,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// Define plugin constants
+define( 'MICROBLOG_DIR', plugin_dir_path( __FILE__ ) );
+
+// Require the migration file
+require_once MICROBLOG_DIR . 'includes/migration.php';
+
+
 /**
  * Main plugin class
  */
