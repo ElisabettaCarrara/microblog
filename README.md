@@ -4,56 +4,46 @@ Tags: microblog, frontend, front-end
 Requires CP: 2.0
 Tested up to CP: 2.4.1
 Requires PHP: 8.1
-Stable tag: 1.0
+Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-MicroBlog adds a minimal front-end posting form on any page with the [microblog] shortcode.
+Post Microblogs from the front-end and show them on a dedicated page.
+
+== UPDATE NOTICE ==
+Please note that this version introduces breaking changes. Plugin architecture and logic have been reworked, and at present backward compatibility is not ensured. I am working on a way to allow importing content from Microblog v1 to Microblog v2 safely.
 
 == Description ==
+Post Microblogs from the front-end and show them on a dedicated page.
 
-Microblog adds a minimal front-end posting form on any page with the shortcode, [microblog]. It's meant for short updates or microblogging.
+Use shortcode [microblog_form] to display the form on a page and [microblog_display] to show the Microblog Page.
 
-The form submits without refreshing the page and then redirects to the post that was created. If you don't quite like this behavior, check out the FAQs.
+Microblog uses a Custom Post Type and Taxonomy, you can chenge the CPT to reflect your own needs, if you decide to do so you will have to adjust the form shortcode and the display shortcode logic, and the CPT and Custom Taxonomy as well and check it does not conflict with the rest of the code. As of now Microblog CPT supports Title, Content, Custom Taxonomy (Microblog Category) set to "status" as default, and Thumbnail.
 
-Unlike other front-end forms that have you type out the title, post content, and tags separately, this plugin takes an original approach by using a special format. Think of it like using markdown in a way (if you're familiar with that). Once you commit the format to memory it makes posting updates even faster.
-
-
-What you type into the textarea is:
-
-(Title in parentheses)
-Content on a new line with any word #hashtagged.
-
-Example:
-
-(This is an amazing title)
-But, the #content is even better!
-
-The above would create a post titled, "This is an amazing title," with "content" as a tag.
+The setting page includes the following options:
+- Default Category Selection for the Form
+- Post character limit
+- Max File Size
+- Redirection logic (Home, Custom URL and Same Page) - You can use it to set the redirection to the page where the [microblog_display] shortcode is
+- Role(s) selection (you can set the user roles that are allowed to submit the form)
+- Number of Microblogs to display per page
+- Show Pagination
 
 == Installation ==
 
 1. Go to the install ClassicPress plugins page within your admin dashboard
 2. Search for MicroBlog
 3. Install & Activate
-4. Use the shortcode [microblog] on any page
-5. Go to Settings, and then Writing. Confirm which post type and category combination to use, and save the settings.
+4. Use the shortcode [microblog_form] and [microblog_display] on any page
+5. Go to Settings to configure The aforementioned settings
 
-== Frequently Asked Questions ==
-
-= Can I change the category? =
-
-Yes. The form includes a select box to choose any of your categories.
-
-= Can I change the post type? =
-
-Yes. Go to Settings, and then Writing. Don't forget to also change to a matching category type/name within the same settings area.
-
-= How can I change what happens after the post is saved? =
-
-By default, you will be redirected to the post. But, if you don't like that and have some coding knowledge, there is a manual option for now. Open microblog.js and replace line 76 with an alert message or nothing. Then no page refreshing or redirects will happen.
+== Donate ==
+If you find my software useful please consider [donating to support its maintenance](https://donate.stripe.com/3cI14n0hv1PCcx7ccS9ws01).
 
 == Changelog ==
+
+= 2.0 =
+* Complete plugin logic and architecture rework. BREAKING CHANGES
 
 = 1.0 =
 * Rebrand Narwhal Microblog and correct the code to work with PHP 8.1
