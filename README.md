@@ -8,7 +8,7 @@ Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-[Microblog Banner](images/microblog.png)
+![Microblog Banner](images/microblog.png)
 
 Post Microblogs from the front-end and show them on a dedicated page.
 
