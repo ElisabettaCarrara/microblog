@@ -780,159 +780,162 @@ $current_url = get_permalink();
     }
 
     /**
-     * Register plugin settings
-     */
-    public function register_settings(): void {
-        register_setting( 'microblog_settings_group', 'microblog_settings', array(
-            'sanitize_callback' => array( $this, 'sanitize_settings' ),
-            'default' => array( 
-                'redirect_after_submit' => 'display',
-                'redirect_custom_url' => '',
-                'allowed_roles' => array( 'administrator' ),
-                'default_form_category' => 'status',
-                'posts_per_page_display' => 10,
-                'show_pagination_display' => 'yes',
-                'character_limit' => 0,
-                'max_file_size' => 5,
-            )
-        ) );
+ * Register plugin settings
+ */
+public function register_settings(): void {
+    register_setting( 'microblog_settings_group', 'microblog_settings', array(
+        'sanitize_callback' => array( $this, 'sanitize_settings' ),
+        'default' => array( 
+            'redirect_after_submit' => 'display',
+            'redirect_custom_url' => '',
+            'allowed_roles' => array( 'administrator' ),
+            'default_form_category' => 'status',
+            'posts_per_page_display' => 10,
+            'show_pagination_display' => 'yes',
+            'character_limit' => 0,
+            'max_file_size' => 5,
+        )
+    ) );
 
-        // General Section
-        add_settings_section(
-            'microblog_general_section',
-            __( 'General Settings', 'microblog' ),
-            null, 
-            'microblog-settings'
-        );
+    // General Section
+    add_settings_section(
+        'microblog_general_section',
+        __( 'General Settings', 'microblog' ),
+        null, 
+        'microblog-settings'
+    );
 
-        add_settings_field(
-            'default_form_category',
-            __( 'Default Form Category', 'microblog' ),
-            array( $this, 'render_default_category_field' ),
-            'microblog-settings',
-            'microblog_general_section'
-        );
+    add_settings_field(
+        'default_form_category',
+        __( 'Default Form Category', 'microblog' ),
+        array( $this, 'render_default_category_field' ),
+        'microblog-settings',
+        'microblog_general_section'
+    );
 
-        add_settings_field(
-            'character_limit',
-            __( 'Post Content Character Limit', 'microblog' ),
-            array( $this, 'render_character_limit_field' ),
-            'microblog-settings',
-            'microblog_general_section'
-        );
+    add_settings_field(
+        'character_limit',
+        __( 'Post Content Character Limit', 'microblog' ),
+        array( $this, 'render_character_limit_field' ),
+        'microblog-settings',
+        'microblog_general_section'
+    );
 
-        add_settings_field(
-            'max_file_size',
-            __( 'Max Image Upload Size (MB)', 'microblog' ),
-            array( $this, 'render_max_file_size_field' ),
-            'microblog-settings',
-            'microblog_general_section'
-        );
+    add_settings_field(
+        'max_file_size',
+        __( 'Max Image Upload Size (MB)', 'microblog' ),
+        array( $this, 'render_max_file_size_field' ),
+        'microblog-settings',
+        'microblog_general_section'
+    );
 
-        // Redirect After Submission Section
-        add_settings_section(
-            'microblog_redirect_section',
-            __( 'Post Submission Redirect', 'microblog' ),
-            null,
-            'microblog-settings'
-        );
+    // Redirect After Submission Section
+    add_settings_section(
+        'microblog_redirect_section',
+        __( 'Post Submission Redirect', 'microblog' ),
+        null,
+        'microblog-settings'
+    );
 
-        add_settings_field(
-            'redirect_after_submit',
-            __( 'Redirect After Submission To', 'microblog' ),
-            array( $this, 'render_redirect_field' ),
-            'microblog-settings',
-            'microblog_redirect_section'
-        );
+    add_settings_field(
+        'redirect_after_submit',
+        __( 'Redirect After Submission To', 'microblog' ),
+        array( $this, 'render_redirect_field' ),
+        'microblog-settings',
+        'microblog_redirect_section'
+    );
 
-        add_settings_field(
-            'redirect_custom_url_field',
-            __( 'Custom Redirect URL', 'microblog' ),
-            array( $this, 'render_redirect_custom_url_field' ),
-            'microblog-settings',
-            'microblog_redirect_section'
-        );
+    add_settings_field(
+        'redirect_custom_url_field',
+        __( 'Custom Redirect URL', 'microblog' ),
+        array( $this, 'render_redirect_custom_url_field' ),
+        'microblog-settings',
+        'microblog_redirect_section'
+    );
 
-        // User Roles Section
-        add_settings_section(
-            'microblog_roles_section',
-            __( 'User Permissions', 'microblog' ),
-            null,
-            'microblog-settings'
-        );
+    // User Roles Section
+    add_settings_section(
+        'microblog_roles_section',
+        __( 'User Permissions', 'microblog' ),
+        null,
+        'microblog-settings'
+    );
 
-        add_settings_field(
-            'allowed_roles',
-            __( 'Allowed Roles to Post', 'microblog' ),
-            array( $this, 'render_roles_field' ),
-            'microblog-settings',
-            'microblog_roles_section'
-        );
+    add_settings_field(
+        'allowed_roles',
+        __( 'Allowed Roles to Post', 'microblog' ),
+        array( $this, 'render_roles_field' ),
+        'microblog-settings',
+        'microblog_roles_section'
+    );
 
-        // Display Settings Section
-        add_settings_section(
-            'microblog_display_section',
-            __( 'Posts Display Settings', 'microblog' ),
-            null,
-            'microblog-settings'
-        );
+    // Display Settings Section
+    add_settings_section(
+        'microblog_display_section',
+        __( 'Posts Display Settings', 'microblog' ),
+        null,
+        'microblog-settings'
+    );
 
-        add_settings_field(
-            'posts_per_page_display',
-            __( 'Posts Per Page (Display Shortcode)', 'microblog' ),
-            array( $this, 'render_posts_per_page_field' ),
-            'microblog-settings',
-            'microblog_display_section'
-        );
+    add_settings_field(
+        'posts_per_page_display',
+        __( 'Posts Per Page (Display Shortcode)', 'microblog' ),
+        array( $this, 'render_posts_per_page_field' ),
+        'microblog-settings',
+        'microblog_display_section'
+    );
 
-        add_settings_field(
-            'show_pagination_display',
-            __( 'Show Pagination (Display Shortcode)', 'microblog' ),
-            array( $this, 'render_show_pagination_field' ),
-            'microblog-settings',
-            'microblog_display_section'
-        );
-    }
+    add_settings_field(
+        'show_pagination_display',
+        __( 'Show Pagination (Display Shortcode)', 'microblog' ),
+        array( $this, 'render_show_pagination_field' ),
+        'microblog-settings',
+        'microblog_display_section'
+    );
+}
 
-    public function render_default_category_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $current_slug = $options['default_form_category'] ?? 'status';
-        $categories = get_terms( array( 'taxonomy' => 'microblog_category', 'hide_empty' => false ) );
-        ?>
-        <select name="microblog_settings[default_form_category]">
-            <?php foreach ( $categories as $category ) : ?>
-                <option value="<?php echo esc_attr( $category->slug ); ?>" <?php selected( $current_slug, $category->slug ); ?>>
-                    <?php echo esc_html( $category->name ); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-        <p class="description"><?php esc_html_e( 'Select the default category for new posts submitted via the form.', 'microblog' ); ?></p>
-        <?php
-    }
-
-    public function render_character_limit_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $limit = $options['character_limit'] ?? 0;
-        ?>
-        <input type="number" name="microblog_settings[character_limit]" value="<?php echo esc_attr( $limit ); ?>" min="0" step="1" />
-        <p class="description"><?php esc_html_e( 'Maximum number of characters allowed for post content. Set to 0 for no limit.', 'microblog' ); ?></p>
-        <?php
-    }
-
-    public function render_max_file_size_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $size = $options['max_file_size'] ?? 5; 
-        ?>
-        <input type="number" name="microblog_settings[max_file_size]" value="<?php echo esc_attr( $size ); ?>" min="1" step="1" />
-        <p class="description"><?php esc_html_e( 'Maximum file size in Megabytes (MB) for image uploads.', 'microblog' ); ?></p>
-        <?php
-    }
-
-    public function render_redirect_field(): void {
+public function render_default_category_field(): void {
     $options = get_option( 'microblog_settings' );
-    $current = $options['redirect_after_submit'] ?? 'current';
+    $current_slug = $options['default_form_category'] ?? 'status';
+    $categories = get_terms( array( 'taxonomy' => 'microblog_category', 'hide_empty' => false ) );
+    ?>
+    <select name="microblog_settings[default_form_category]">
+        <?php foreach ( $categories as $category ) : ?>
+            <option value="<?php echo esc_attr( $category->slug ); ?>" <?php selected( $current_slug, $category->slug ); ?>>
+                <?php echo esc_html( $category->name ); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <p class="description"><?php esc_html_e( 'Select the default category for new posts submitted via the form.', 'microblog' ); ?></p>
+    <?php
+}
+
+public function render_character_limit_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $limit = $options['character_limit'] ?? 0;
+    ?>
+    <input type="number" name="microblog_settings[character_limit]" value="<?php echo esc_attr( $limit ); ?>" min="0" step="1" />
+    <p class="description"><?php esc_html_e( 'Maximum number of characters allowed for post content. Set to 0 for no limit.', 'microblog' ); ?></p>
+    <?php
+}
+
+public function render_max_file_size_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $size = $options['max_file_size'] ?? 5; 
+    ?>
+    <input type="number" name="microblog_settings[max_file_size]" value="<?php echo esc_attr( $size ); ?>" min="1" step="1" />
+    <p class="description"><?php esc_html_e( 'Maximum file size in Megabytes (MB) for image uploads.', 'microblog' ); ?></p>
+    <?php
+}
+
+public function render_redirect_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $current = $options['redirect_after_submit'] ?? 'display';
     ?>
     <select id="microblog_redirect_after_submit" name="microblog_settings[redirect_after_submit]">
+        <option value="display" <?php selected( $current, 'display' ); ?>>
+            <?php esc_html_e( 'Display Page with Posts', 'microblog' ); ?>
+        </option>
         <option value="home" <?php selected( $current, 'home' ); ?>>
             <?php esc_html_e( 'Home Page', 'microblog' ); ?>
         </option>
@@ -950,135 +953,157 @@ $current_url = get_permalink();
         ); ?>
     </p>
     <script type="text/javascript">
-        jQuery(document).ready(function($) {
+        document.addEventListener('DOMContentLoaded', function() {
+            const redirectSelect = document.getElementById('microblog_redirect_after_submit');
+            const customUrlWrapper = document.getElementById('microblog_custom_url_field_wrapper');
+            
             function toggleCustomUrlField() {
-                if ($('#microblog_redirect_after_submit').val() === 'custom') {
-                    $('#microblog_custom_url_field_wrapper').show();
-                } else {
-                    $('#microblog_custom_url_field_wrapper').hide();
+                if (redirectSelect && customUrlWrapper) {
+                    if (redirectSelect.value === 'custom') {
+                        customUrlWrapper.style.display = 'block';
+                    } else {
+                        customUrlWrapper.style.display = 'none';
+                    }
                 }
             }
-            toggleCustomUrlField(); // Initial check
-            $('#microblog_redirect_after_submit').on('change', toggleCustomUrlField);
+            
+            // Initial check
+            toggleCustomUrlField();
+            
+            // Add event listener for changes
+            if (redirectSelect) {
+                redirectSelect.addEventListener('change', toggleCustomUrlField);
+            }
         });
     </script>
     <?php
 }
+
+public function render_redirect_custom_url_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $url = $options['redirect_custom_url'] ?? '';
+    ?>
+    <div id="microblog_custom_url_field_wrapper">
+        <input type="url" name="microblog_settings[redirect_custom_url]" value="<?php echo esc_attr( $url ); ?>" class="regular-text" placeholder="https://example.com/microblog-page" />
+        <p class="description"><?php esc_html_e( 'Enter the full URL where users should be redirected after successfully submitting a post.', 'microblog' ); ?></p>
+    </div>
+    <?php
+}
+
+public function render_roles_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $selected_roles = $options['allowed_roles'] ?? array( 'administrator' ); 
+    $roles = get_editable_roles(); 
     
-    public function render_roles_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $selected_roles = $options['allowed_roles'] ?? array( 'administrator' ); 
-        $roles = get_editable_roles(); 
-        
-        foreach ( $roles as $role_slug => $details ) : ?>
-            <label>
-                <input type="checkbox" name="microblog_settings[allowed_roles][]" 
-                       value="<?php echo esc_attr( $role_slug ); ?>"
-                       <?php checked( in_array( $role_slug, $selected_roles, true ) ); ?>>
-                <?php echo esc_html( $details['name'] ); ?>
-            </label><br>
-        <?php endforeach;
-        echo '<p class="description">' . esc_html__( 'Select user roles that are allowed to submit microblog posts using the frontend form.', 'microblog' ) . '</p>';
+    foreach ( $roles as $role_slug => $details ) : ?>
+        <label>
+            <input type="checkbox" name="microblog_settings[allowed_roles][]" 
+                   value="<?php echo esc_attr( $role_slug ); ?>"
+                   <?php checked( in_array( $role_slug, $selected_roles, true ) ); ?>>
+            <?php echo esc_html( $details['name'] ); ?>
+        </label><br>
+    <?php endforeach;
+    echo '<p class="description">' . esc_html__( 'Select user roles that are allowed to submit microblog posts using the frontend form.', 'microblog' ) . '</p>';
+}
+
+public function render_posts_per_page_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $value = $options['posts_per_page_display'] ?? 10;
+    ?>
+    <input type="number" name="microblog_settings[posts_per_page_display]" value="<?php echo esc_attr( $value ); ?>" min="1" class="small-text" />
+    <p class="description"><?php esc_html_e( 'Default number of posts to show per page for the [microblog_display] shortcode.', 'microblog' ); ?></p>
+    <?php
+}
+
+public function render_show_pagination_field(): void {
+    $options = get_option( 'microblog_settings' );
+    $value = $options['show_pagination_display'] ?? 'yes';
+    ?>
+    <select name="microblog_settings[show_pagination_display]">
+        <option value="yes" <?php selected( $value, 'yes' ); ?>><?php esc_html_e( 'Yes', 'microblog' ); ?></option>
+        <option value="no" <?php selected( $value, 'no' ); ?>><?php esc_html_e( 'No', 'microblog' ); ?></option>
+    </select>
+    <p class="description"><?php esc_html_e( 'Whether to show pagination for the [microblog_display] shortcode if there are multiple pages of posts.', 'microblog' ); ?></p>
+    <?php
+}
+
+/**
+ * Sanitize settings
+ *
+ * @param array $input Raw input from settings form.
+ * @return array Sanitized settings.
+ */
+public function sanitize_settings( $input ): array {
+    $clean_input = array();
+    $default_settings = $this->get_default_settings();
+
+    // Sanitize redirect_after_submit
+    $redirect_options = array( 'display', 'home', 'custom', 'current' );
+    $clean_input['redirect_after_submit'] = in_array( $input['redirect_after_submit'] ?? 'display', $redirect_options, true ) 
+        ? $input['redirect_after_submit'] 
+        : $default_settings['redirect_after_submit'];
+
+    // Sanitize redirect_custom_url (only if 'custom' is chosen)
+    if ( 'custom' === $clean_input['redirect_after_submit'] ) {
+        $clean_input['redirect_custom_url'] = ! empty( $input['redirect_custom_url'] ) ? esc_url_raw( $input['redirect_custom_url'] ) : '';
+    } else {
+        $clean_input['redirect_custom_url'] = ''; 
     }
 
-    public function render_posts_per_page_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $value = $options['posts_per_page_display'] ?? 10;
-        ?>
-        <input type="number" name="microblog_settings[posts_per_page_display]" value="<?php echo esc_attr( $value ); ?>" min="1" class="small-text" />
-        <p class="description"><?php esc_html_e( 'Default number of posts to show per page for the [microblog_display] shortcode.', 'microblog' ); ?></p>
-        <?php
-    }
-
-    public function render_show_pagination_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $value = $options['show_pagination_display'] ?? 'yes';
-        ?>
-        <select name="microblog_settings[show_pagination_display]">
-            <option value="yes" <?php selected( $value, 'yes' ); ?>><?php esc_html_e( 'Yes', 'microblog' ); ?></option>
-            <option value="no" <?php selected( $value, 'no' ); ?>><?php esc_html_e( 'No', 'microblog' ); ?></option>
-        </select>
-        <p class="description"><?php esc_html_e( 'Whether to show pagination for the [microblog_display] shortcode if there are multiple pages of posts.', 'microblog' ); ?></p>
-        <?php
-    }
-
-    /**
-     * Sanitize settings
-     *
-     * @param array $input Raw input from settings form.
-     * @return array Sanitized settings.
-     */
-    public function sanitize_settings( $input ): array {
-        $clean_input = array();
-        $default_settings = $this->get_default_settings();
-
-        // Sanitize redirect_after_submit
-        $redirect_options = array( 'display', 'home', 'custom', 'current' );
-        $clean_input['redirect_after_submit'] = in_array( $input['redirect_after_submit'] ?? 'display', $redirect_options, true ) 
-            ? $input['redirect_after_submit'] 
-            : $default_settings['redirect_after_submit'];
-
-        // Sanitize redirect_custom_url (only if 'custom' is chosen)
-        if ( 'custom' === $clean_input['redirect_after_submit'] ) {
-            $clean_input['redirect_custom_url'] = ! empty( $input['redirect_custom_url'] ) ? esc_url_raw( $input['redirect_custom_url'] ) : '';
-        } else {
-            $clean_input['redirect_custom_url'] = ''; 
-        }
-
-        // Sanitize allowed_roles
-        $clean_input['allowed_roles'] = array();
-        $editable_roles = array_keys( get_editable_roles() );
-        if ( ! empty( $input['allowed_roles'] ) && is_array( $input['allowed_roles'] ) ) {
-            foreach ( $input['allowed_roles'] as $role ) {
-                if ( in_array( $role, $editable_roles, true ) ) {
-                    $clean_input['allowed_roles'][] = $role;
-                }
+    // Sanitize allowed_roles
+    $clean_input['allowed_roles'] = array();
+    $editable_roles = array_keys( get_editable_roles() );
+    if ( ! empty( $input['allowed_roles'] ) && is_array( $input['allowed_roles'] ) ) {
+        foreach ( $input['allowed_roles'] as $role ) {
+            if ( in_array( $role, $editable_roles, true ) ) {
+                $clean_input['allowed_roles'][] = $role;
             }
         }
-        // Ensure at least one role is selected, default to administrator if empty
-        if ( empty( $clean_input['allowed_roles'] ) ) {
-            $clean_input['allowed_roles'] = $default_settings['allowed_roles'];
-        }
-
-        // Sanitize default_form_category
-        $clean_input['default_form_category'] = isset($input['default_form_category']) ? sanitize_key($input['default_form_category']) : $default_settings['default_form_category'];
-        if ( ! term_exists( $clean_input['default_form_category'], 'microblog_category' ) ) {
-            $clean_input['default_form_category'] = $default_settings['default_form_category']; 
-        }
-
-        // Sanitize posts_per_page_display
-        $clean_input['posts_per_page_display'] = isset( $input['posts_per_page_display'] ) ? absint( $input['posts_per_page_display'] ) : $default_settings['posts_per_page_display'];
-        if ( $clean_input['posts_per_page_display'] < 1 ) { 
-            $clean_input['posts_per_page_display'] = $default_settings['posts_per_page_display'];
-        }
-
-        // Sanitize show_pagination_display
-        $clean_input['show_pagination_display'] = isset( $input['show_pagination_display'] ) && in_array( $input['show_pagination_display'], array( 'yes', 'no' ) ) ? $input['show_pagination_display'] : $default_settings['show_pagination_display'];
-
-        // Sanitize character_limit
-        $clean_input['character_limit'] = isset( $input['character_limit'] ) ? absint( $input['character_limit'] ) : $default_settings['character_limit'];
-
-        // Sanitize max_file_size
-        $clean_input['max_file_size'] = isset( $input['max_file_size'] ) ? absint( $input['max_file_size'] ) : $default_settings['max_file_size'];
-        if ( $clean_input['max_file_size'] < 1 ) {
-            $clean_input['max_file_size'] = $default_settings['max_file_size'];
-        }
-
-        return $clean_input;
+    }
+    // Ensure at least one role is selected, default to administrator if empty
+    if ( empty( $clean_input['allowed_roles'] ) ) {
+        $clean_input['allowed_roles'] = $default_settings['allowed_roles'];
     }
 
-    private function get_default_settings(): array {
-        return array(
-            'redirect_after_submit' => 'display',
-            'redirect_custom_url' => '',
-            'allowed_roles' => array( 'administrator' ),
-            'default_form_category' => 'status',
-            'posts_per_page_display' => 10,
-            'show_pagination_display' => 'yes',
-            'character_limit' => 0,
-            'max_file_size' => 5,
-        );
+    // Sanitize default_form_category
+    $clean_input['default_form_category'] = isset($input['default_form_category']) ? sanitize_key($input['default_form_category']) : $default_settings['default_form_category'];
+    if ( ! term_exists( $clean_input['default_form_category'], 'microblog_category' ) ) {
+        $clean_input['default_form_category'] = $default_settings['default_form_category']; 
     }
+
+    // Sanitize posts_per_page_display
+    $clean_input['posts_per_page_display'] = isset( $input['posts_per_page_display'] ) ? absint( $input['posts_per_page_display'] ) : $default_settings['posts_per_page_display'];
+    if ( $clean_input['posts_per_page_display'] < 1 ) { 
+        $clean_input['posts_per_page_display'] = $default_settings['posts_per_page_display'];
+    }
+
+    // Sanitize show_pagination_display
+    $clean_input['show_pagination_display'] = isset( $input['show_pagination_display'] ) && in_array( $input['show_pagination_display'], array( 'yes', 'no' ) ) ? $input['show_pagination_display'] : $default_settings['show_pagination_display'];
+
+    // Sanitize character_limit
+    $clean_input['character_limit'] = isset( $input['character_limit'] ) ? absint( $input['character_limit'] ) : $default_settings['character_limit'];
+
+    // Sanitize max_file_size
+    $clean_input['max_file_size'] = isset( $input['max_file_size'] ) ? absint( $input['max_file_size'] ) : $default_settings['max_file_size'];
+    if ( $clean_input['max_file_size'] < 1 ) {
+        $clean_input['max_file_size'] = $default_settings['max_file_size'];
+    }
+
+    return $clean_input;
+}
+
+private function get_default_settings(): array {
+    return array(
+        'redirect_after_submit' => 'display',
+        'redirect_custom_url' => '',
+        'allowed_roles' => array( 'administrator' ),
+        'default_form_category' => 'status',
+        'posts_per_page_display' => 10,
+        'show_pagination_display' => 'yes',
+        'character_limit' => 0,
+        'max_file_size' => 5,
+    );
+}
 
     /**
      * Render documentation page
