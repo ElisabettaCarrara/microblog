@@ -1,19 +1,12 @@
 === MicroBlog ===
 Contributors: Elisabetta Carrara
 Tags: microblog, frontend, front-end
-Requires CP: 1.0
+Requires CP: 2.0
+Tested up to CP: 2.4.1
 Requires PHP: 8.1
 Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-
-=== Microblog ===
-Contributors: Elisabetta Carrara
-Requires at least: 2.0
-Tested up to: 2.4.1
-Requires PHP: 7.4
-Stable tag: 2.0
-License: License: GPL2
 
 Post Microblogs from the front-end and show them on a dedicated page.
 
@@ -43,6 +36,9 @@ The setting page includes the following options:
 3. Install & Activate
 4. Use the shortcode [microblog_form] and [microblog_display] on any page
 5. Go to Settings to configure The aforementioned settings
+
+== Donate ==
+If you find my software useful please consider [donating to support its maintenance](https://donate.stripe.com/3cI14n0hv1PCcx7ccS9ws01).
 
 == Changelog ==
 
