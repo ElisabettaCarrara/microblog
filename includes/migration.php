@@ -247,7 +247,7 @@ function run_microblog_v1_to_v2_migration() {
 					<?php
 					printf(
 						/* translators: %s: microblog */
-						esc_html__( 'Microblog plugin data has been successfully migrated to the new format. If you encounter any issues, please check our support channels.', MICROBLOG_TEXT_DOMAIN )
+						esc_html__( 'Microblog plugin data has been successfully migrated to the new format. If you encounter any issues, please check our support channels.', 'microblog' )
 					);
 					?>
 				</p>
