@@ -216,32 +216,16 @@ class Microblog_Plugin {
         }
 
         // Determine redirect URL
-        if ( empty( $atts['redirect_after_submit'] ) ) {
-            $redirect_setting = $options['redirect_after_submit'] ?? 'display';
-            if ( 'home' === $redirect_setting ) {
-                $atts['redirect_after_submit'] = home_url( '/' );
-            } elseif ( 'custom' === $redirect_setting && ! empty( $options['redirect_custom_url'] ) ) {
-                $atts['redirect_after_submit'] = esc_url( $options['redirect_custom_url'] );
-            } else {
-                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-                $pages = get_pages( array(
-                    'meta_key'   => '_wp_page_template',
-                    'meta_value' => 'default',
-                    'post_status' => 'publish',
-                ) );
-                $display_page_url = '';
-
-                foreach ( $pages as $page ) {
-                    if ( has_shortcode( $page->post_content, 'microblog_display' ) ) {
-                        $display_page_url = get_permalink( $page->ID );
-                        break;
-                    }
-                }
-
-                $atts['redirect_after_submit'] = ! empty( $display_page_url ) ? $display_page_url : get_permalink();
-            }
-        }
+if ( empty( $atts['redirect_after_submit'] ) ) {
+    $redirect_setting = $options['redirect_after_submit'] ?? 'current';
+    if ( 'home' === $redirect_setting ) {
+        $atts['redirect_after_submit'] = home_url( '/' );
+    } elseif ( 'custom' === $redirect_setting && ! empty( $options['redirect_custom_url'] ) ) {
+        $atts['redirect_after_submit'] = esc_url( $options['redirect_custom_url'] );
+    } else { // 'current' or fallback
+        $atts['redirect_after_submit'] = get_permalink();
+    }
+}
 
         return $this->render_microblog_form( $atts );
     }
@@ -467,82 +451,90 @@ public function handle_image_upload(): void {
      * Handle post submission via AJAX
      */
     public function handle_post_submission(): void {
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'microblog_nonce' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
-            return;
-        }
-
-        if ( ! is_user_logged_in() ) {
-            wp_send_json_error( array( 'message' => __( 'You must be logged in to submit posts.', 'microblog' ) ), 401 );
-            return;
-        }
-
-        $options = get_option('microblog_settings');
-        $allowed_roles = $options['allowed_roles'] ?? array( 'administrator' );
-        $user = wp_get_current_user();
-        $can_post = array_reduce( $user->roles, function ( $carry, $role ) use ( $allowed_roles ) {
-            return $carry || in_array( $role, $allowed_roles, true );
-        }, false );
-        
-        if ( ! $can_post ) {
-            wp_send_json_error( array( 'message' => __( 'You do not have permission to submit posts.', 'microblog' ) ), 403 );
-            return;
-        }
-
-        $title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
-        $content      = isset( $_POST['content'] ) ? sanitize_text_field( wp_unslash( $_POST['content'] ) : '';
-        $category_id  = isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0;
-        $thumbnail_id = isset( $_POST['thumbnail'] ) ? absint( $_POST['thumbnail'] ) : 0;
-
-        if ( empty( $title ) ) {
-            wp_send_json_error( array( 'message' => __( 'Title is required.', 'microblog' ) ) );
-            return;
-        }
-
-        $char_limit = $options['character_limit'] ?? 0;
-        if ( $char_limit > 0 && mb_strlen( strip_tags( $content ) ) > $char_limit ) {
-            wp_send_json_error( array( 'message' => sprintf( __( 'Content exceeds character limit of %d.', 'microblog' ), $char_limit ) ) );
-            return;
-        }
-
-        $post_data = array(
-            'post_title'   => $title,
-            'post_content' => $content,
-            'post_type'    => 'microblog',
-            'post_status'  => 'publish',
-            'post_author'  => get_current_user_id(),
-        );
-
-        $post_id = wp_insert_post( $post_data, true );
-
-        if ( is_wp_error( $post_id ) ) {
-            wp_send_json_error( array( 'message' => __( 'Failed to create post: ', 'microblog' ) . $post_id->get_error_message() ) );
-            return;
-        }
-
-        if ( $category_id > 0 ) {
-            $term = term_exists( $category_id, 'microblog_category' );
-            if ( $term !== 0 && $term !== null ) {
-                wp_set_post_terms( $post_id, array( $category_id ), 'microblog_category' );
-            }
-        } else {
-            $default_category_slug = get_option('microblog_settings')['default_form_category'] ?? 'status';
-            $default_term = get_term_by( 'slug', $default_category_slug, 'microblog_category' );
-            if ( $default_term ) {
-                wp_set_post_terms( $post_id, array( $default_term->term_id ), 'microblog_category' );
-            }
-        }
-
-        if ( $thumbnail_id > 0 && get_post_type( $thumbnail_id ) === 'attachment' ) {
-            set_post_thumbnail( $post_id, $thumbnail_id );
-        }
-
-        wp_send_json_success( array(
-            'message' => __( 'Post submitted successfully!', 'microblog' ),
-            'post_id' => $post_id,
-            'redirect' => esc_url_raw( $_POST['redirect_url'] ?? get_permalink( $post_id ) )
-        ) );
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'microblog_nonce' ) ) {
+        wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
+        return;
     }
+
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( array( 'message' => __( 'You must be logged in to submit posts.', 'microblog' ) ), 401 );
+        return;
+    }
+
+    $options = get_option('microblog_settings');
+    $allowed_roles = $options['allowed_roles'] ?? array( 'administrator' );
+    $user = wp_get_current_user();
+    $can_post = array_reduce( $user->roles, function ( $carry, $role ) use ( $allowed_roles ) {
+        return $carry || in_array( $role, $allowed_roles, true );
+    }, false );
+    
+    if ( ! $can_post ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to submit posts.', 'microblog' ) ), 403 );
+        return;
+    }
+
+    $title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+    $content      = isset( $_POST['content'] ) ? sanitize_text_field( wp_unslash( $_POST['content'] ) ) : '';
+    $category_id  = isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0;
+    $thumbnail_id = isset( $_POST['thumbnail'] ) ? absint( $_POST['thumbnail'] ) : 0;
+
+    if ( empty( $title ) ) {
+        wp_send_json_error( array( 'message' => __( 'Title is required.', 'microblog' ) ) );
+        return;
+    }
+
+    $char_limit = $options['character_limit'] ?? 0;
+    if ( $char_limit > 0 && mb_strlen( strip_tags( $content ) ) > $char_limit ) {
+        wp_send_json_error( array( 'message' => sprintf( __( 'Content exceeds character limit of %d.', 'microblog' ), $char_limit ) ) );
+        return;
+    }
+
+    $post_data = array(
+        'post_title'   => $title,
+        'post_content' => $content,
+        'post_type'    => 'microblog',
+        'post_status'  => 'publish',
+        'post_author'  => get_current_user_id(),
+    );
+
+    $post_id = wp_insert_post( $post_data, true );
+
+    if ( is_wp_error( $post_id ) ) {
+        wp_send_json_error( array( 'message' => __( 'Failed to create post: ', 'microblog' ) . $post_id->get_error_message() ) );
+        return;
+    }
+
+    if ( $category_id > 0 ) {
+        $term = term_exists( $category_id, 'microblog_category' );
+        if ( $term !== 0 && $term !== null ) {
+            wp_set_post_terms( $post_id, array( $category_id ), 'microblog_category' );
+        }
+    } else {
+        $default_category_slug = $options['default_form_category'] ?? 'status';
+        $default_term = get_term_by( 'slug', $default_category_slug, 'microblog_category' );
+        if ( $default_term ) {
+            wp_set_post_terms( $post_id, array( $default_term->term_id ), 'microblog_category' );
+        }
+    }
+
+    if ( $thumbnail_id > 0 && get_post_type( $thumbnail_id ) === 'attachment' ) {
+        set_post_thumbnail( $post_id, $thumbnail_id );
+    }
+
+    // Get intended redirect URL from frontend (set by shortcode logic)
+    $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : get_permalink($post_id);
+    $current_url = get_permalink();
+
+    // If redirect URL is the current page, don't redirect, just show message
+    $do_redirect = ($redirect_url !== $current_url);
+
+    wp_send_json_success( array(
+        'message' => __( 'Post submitted successfully!', 'microblog' ),
+        'post_id' => $post_id,
+        'redirect' => $do_redirect ? $redirect_url : '',
+        'show_message' => !$do_redirect,
+    ) );
+}
 
     /**
      * Render display shortcode
@@ -857,54 +849,42 @@ public function handle_image_upload(): void {
     }
 
     public function render_redirect_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $current = $options['redirect_after_submit'] ?? 'display';
-        ?>
-        <select id="microblog_redirect_after_submit" name="microblog_settings[redirect_after_submit]">
-            <option value="display" <?php selected( $current, 'display' ); ?>>
-                <?php esc_html_e( 'MicroBlog Display Page (if available)', 'microblog' ); ?>
-            </option>
-            <option value="home" <?php selected( $current, 'home' ); ?>>
-                <?php esc_html_e( 'Home Page', 'microblog' ); ?>
-            </option>
-            <option value="custom" <?php selected( $current, 'custom' ); ?>>
-                <?php esc_html_e( 'Custom URL', 'microblog' ); ?>
-            </option>
-            <option value="current" <?php selected( $current, 'current' ); ?>>
-                <?php esc_html_e( 'Current Page (where form is)', 'microblog' ); ?>
-            </option>
-        </select>
-        <p class="description"><?php esc_html_e( 'Choose where to redirect the user after successfully submitting a post. "MicroBlog Display Page" tries to find a page with the [microblog_display] shortcode.', 'microblog' ); ?></p>
-        <script type="text/javascript">
-            jQuery(document).ready(function($) {
-                function toggleCustomUrlField() {
-                    if ($('#microblog_redirect_after_submit').val() === 'custom') {
-                        $('#microblog_custom_url_field_wrapper').show();
-                    } else {
-                        $('#microblog_custom_url_field_wrapper').hide();
-                    }
+    $options = get_option( 'microblog_settings' );
+    $current = $options['redirect_after_submit'] ?? 'current';
+    ?>
+    <select id="microblog_redirect_after_submit" name="microblog_settings[redirect_after_submit]">
+        <option value="home" <?php selected( $current, 'home' ); ?>>
+            <?php esc_html_e( 'Home Page', 'microblog' ); ?>
+        </option>
+        <option value="custom" <?php selected( $current, 'custom' ); ?>>
+            <?php esc_html_e( 'Custom URL (set below)', 'microblog' ); ?>
+        </option>
+        <option value="current" <?php selected( $current, 'current' ); ?>>
+            <?php esc_html_e( 'Current Page (show success message, no redirect)', 'microblog' ); ?>
+        </option>
+    </select>
+    <p class="description">
+        <?php esc_html_e(
+            'Choose where to redirect the user after successfully submitting a post. For "Custom URL" enter the page address below (e.g., the page with the [microblog_display] shortcode). "Current Page" will reload this page and show a success message.',
+            'microblog'
+        ); ?>
+    </p>
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            function toggleCustomUrlField() {
+                if ($('#microblog_redirect_after_submit').val() === 'custom') {
+                    $('#microblog_custom_url_field_wrapper').show();
+                } else {
+                    $('#microblog_custom_url_field_wrapper').hide();
                 }
-                toggleCustomUrlField(); // Initial check
-                $('#microblog_redirect_after_submit').on('change', toggleCustomUrlField);
-            });
-        </script>
-        <?php
-    }
-
-    public function render_redirect_custom_url_field(): void {
-        $options = get_option( 'microblog_settings' );
-        $custom_url = $options['redirect_custom_url'] ?? '';
-        ?>
-        <div id="microblog_custom_url_field_wrapper" style="display:none;">
-             <input type="url" name="microblog_settings[redirect_custom_url]" 
-                   value="<?php echo esc_attr( $custom_url ); ?>"
-                   placeholder="<?php esc_attr_e( 'https://example.com/thank-you', 'microblog' ); ?>"
-                   class="regular-text" />
-            <p class="description"><?php esc_html_e( 'Enter the full URL (including http/https) for custom redirection. This is only used if "Custom URL" is selected above.', 'microblog' ); ?></p>
-        </div>
-        <?php
-    }
-
+            }
+            toggleCustomUrlField(); // Initial check
+            $('#microblog_redirect_after_submit').on('change', toggleCustomUrlField);
+        });
+    </script>
+    <?php
+}
+    
     public function render_roles_field(): void {
         $options = get_option( 'microblog_settings' );
         $selected_roles = $options['allowed_roles'] ?? array( 'administrator' ); 
