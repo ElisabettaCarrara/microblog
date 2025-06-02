@@ -383,7 +383,7 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
  */
 public function handle_image_upload(): void {
     // Check nonce for security.
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'microblog_nonce' ) ) {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'microblog_nonce' ) ) {
         wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
         return;
     }
@@ -395,12 +395,17 @@ public function handle_image_upload(): void {
     }
 
     // Fetch settings and validate user role.
-    $options = get_option( 'microblog_settings' );
-    $allowed_roles = isset( $options['allowed_roles'] ) ? $options['allowed_roles'] : array( 'administrator' );
+    $options = get_option( 'microblog_settings', array() );
+    $allowed_roles = isset( $options['allowed_roles'] ) && is_array( $options['allowed_roles'] ) ? $options['allowed_roles'] : array( 'administrator' );
     $user = wp_get_current_user();
-    $can_post = array_reduce( $user->roles, static function ( $carry, $role ) use ( $allowed_roles ) {
-        return $carry || in_array( $role, $allowed_roles, true );
-    }, false );
+
+    $can_post = array_reduce(
+        $user->roles,
+        static function ( $carry, $role ) use ( $allowed_roles ) {
+            return $carry || in_array( $role, $allowed_roles, true );
+        },
+        false
+    );
 
     if ( ! $can_post ) {
         wp_send_json_error( array( 'message' => __( 'You do not have permission to upload images.', 'microblog' ) ), 403 );
@@ -409,23 +414,44 @@ public function handle_image_upload(): void {
 
     // Check if image file is provided.
     if ( empty( $_FILES['image'] ) ) {
-        wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ) );
+        wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ), 400 );
         return;
     }
 
-    $file = $_FILES['image'];
-    $allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
+    // Unsplash the entire $_FILES['image'] array before processing.
+    $file = wp_unslash( $_FILES['image'] );
 
-    // Validate file type.
-    if ( ! in_array( $file['type'], $allowed_types, true ) ) {
-        wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ) );
+    // Check for upload errors.
+    if ( ! empty( $file['error'] ) ) {
+        $upload_errors = array(
+            UPLOAD_ERR_INI_SIZE   => __( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.', 'microblog' ),
+            UPLOAD_ERR_FORM_SIZE  => __( 'The uploaded file exceeds the MAX_FILE_SIZE directive specified in the HTML form.', 'microblog' ),
+            UPLOAD_ERR_PARTIAL    => __( 'The uploaded file was only partially uploaded.', 'microblog' ),
+            UPLOAD_ERR_NO_FILE    => __( 'No file was uploaded.', 'microblog' ),
+            UPLOAD_ERR_NO_TMP_DIR => __( 'Missing a temporary folder.', 'microblog' ),
+            UPLOAD_ERR_CANT_WRITE => __( 'Failed to write file to disk.', 'microblog' ),
+            UPLOAD_ERR_EXTENSION  => __( 'A PHP extension stopped the file upload.', 'microblog' ),
+        );
+
+        $error_message = isset( $upload_errors[ $file['error'] ] ) ? $upload_errors[ $file['error'] ] : __( 'Unknown upload error.', 'microblog' );
+
+        wp_send_json_error( array( 'message' => $error_message ), 400 );
+        return;
+    }
+
+    // Validate file type using wp_check_filetype() for security.
+    $allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
+    $file_type = wp_check_filetype( $file['name'] );
+
+    if ( empty( $file_type['type'] ) || ! in_array( $file_type['type'], $allowed_types, true ) ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ), 400 );
         return;
     }
 
     // Validate file size.
-    $max_file_size = isset( $options['max_file_size'] ) ? $options['max_file_size'] : 5;
+    $max_file_size = isset( $options['max_file_size'] ) && is_numeric( $options['max_file_size'] ) ? (int) $options['max_file_size'] : 5; // Default 5 MB
     if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
-        wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), esc_html( $max_file_size ) ) ) );
+        wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), esc_html( $max_file_size ) ) ), 400 );
         return;
     }
 
@@ -446,7 +472,7 @@ public function handle_image_upload(): void {
 
     // Check for upload errors.
     if ( isset( $upload['error'] ) ) {
-        wp_send_json_error( array( 'message' => $upload['error'] ) );
+        wp_send_json_error( array( 'message' => $upload['error'] ), 400 );
         return;
     }
 
@@ -464,7 +490,7 @@ public function handle_image_upload(): void {
     // Check for WP error when creating the attachment.
     if ( is_wp_error( $attachment_id ) ) {
         wp_delete_file( $upload['file'] ); // Cleanup the file.
-        wp_send_json_error( array( 'message' => __( 'Failed to create attachment.', 'microblog' ) . $attachment_id->get_error_message() ) );
+        wp_send_json_error( array( 'message' => __( 'Failed to create attachment: ', 'microblog' ) . $attachment_id->get_error_message() ), 500 );
         return;
     }
 
