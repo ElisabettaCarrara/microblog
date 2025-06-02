@@ -9,6 +9,9 @@ Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
+Write short status updates from the front-end of your site and display them on a dedicated page. This plugin can be used to build a social networking site, a microblog site or even a private diary.
+You can customize it to adapt it to your own needs by altering code for CPT, Custom Taxonomy and Image Upload. After that you will need to adjust the Submission Form and eventually the Display Shortcode to accomodate for any new field you added.
+
 == UPDATE NOTICE ==
 Please note that this version introduces breaking changes. The plugin architecture and logic have been reworked, and at present time backward compatibility is not granted. It might be possible to export old content from Microblog v1 to import it in Microblog v2 using a PHP script that you can place in a utility plugin or in the main plugin file.
 
@@ -17,13 +20,13 @@ Post Microblogs from the front-end and show them on a dedicated page.
 
 Use shortcode [microblog_form] to display the form on a page and [microblog_display] to show the Microblog Page.
 
-Microblog uses a Custom Post Type and Taxonomy, you can chenge the CPT to reflect your own needs, if you decide to do so you will have to adjust the form shortcode and the display shortcode logic, and the CPT and Custom Taxonomy as well and check it does not conflict with the rest of the code. As of now Microblog CPT supports Title, Content, Custom Taxonomy (Microblog Category) set to "status" as default, and Thumbnail.
+As of now Microblog CPT supports Title, Content, Custom Taxonomy (Microblog Category) set to "status" as default, and Thumbnail.
 
 The setting page includes the following options:
 - Default Category Selection for the Form
-- Post character limit
+- Post Character limit
 - Max File Size
-- Redirection logic (Home, Custom URL and Same Page) - You can use it to set the redirection to the page where the [microblog_display] shortcode is
+- Redirection logic (Home, Custom URL that activates the field to input the URL, and Same Page) - You can use it to set the redirection to the page where the [microblog_display] shortcode is for example.
 - Role(s) selection (you can set the user roles that are allowed to submit the form)
 - Number of Microblogs to display per page
 - Show Pagination
