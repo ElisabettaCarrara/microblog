@@ -1,3 +1,4 @@
+![Microblog Banner](images/microblog.png)
 === MicroBlog ===
 Contributors: Elisabetta Carrara
 Tags: microblog, frontend, front-end
@@ -7,10 +8,6 @@ Requires PHP: 8.1
 Stable tag: 2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-
-![Microblog Banner](images/microblog.png)
-
-Post Microblogs from the front-end and show them on a dedicated page.
 
 == UPDATE NOTICE ==
 Please note that this version introduces breaking changes. The plugin architecture and logic have been reworked, and at present time backward compatibility is not granted. It might be possible to export old content from Microblog v1 to import it in Microblog v2 using a PHP script that you can place in a utility plugin or in the main plugin file.
