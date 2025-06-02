@@ -597,8 +597,11 @@ if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
     }
 
     // Get intended redirect URL from frontend (set by shortcode logic)
-    $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : get_permalink($post_id);
-    $current_url = get_permalink();
+    $redirect_url = isset( $_POST['redirect_url'] ) 
+    ? esc_url_raw( wp_unslash( $_POST['redirect_url'] ) ) 
+    : get_permalink( $post_id );
+
+$current_url = get_permalink();
 
     // If redirect URL is the current page, don't redirect, just show message
     $do_redirect = ($redirect_url !== $current_url);
@@ -695,7 +698,7 @@ if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
                         if ( $categories_list && ! is_wp_error( $categories_list ) ) :
                         ?>
                         <div class="microblog-categories">
-                            <?php echo $categories_list; ?>
+                            <?php echo esc_html( $categories_list ); ?>
                         </div>
                         <?php endif; ?>
                     </footer>
