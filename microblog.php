@@ -707,17 +707,18 @@ $current_url = get_permalink();
         </div>
 
         <?php if ( 'yes' === $atts['show_pagination'] && $query->max_num_pages > 1 ) : ?>
-        <nav class="microblog-pagination">
-            <?php
-            echo paginate_links( array(
-                'base'    => str_replace( PHP_INT_MAX, '%#%', esc_url( get_pagenum_link( PHP_INT_MAX ) ) ),
-                'format'  => '?paged=%#%',
-                'current' => max( 1, $paged ),
-                'total'   => $query->max_num_pages,
-                'prev_text' => __( '&laquo; Previous', 'microblog' ),
-                'next_text' => __( 'Next &raquo;', 'microblog' ),
-            ) );
-            ?>
+    <nav class="microblog-pagination">
+        <?php
+        echo wp_kses_post( paginate_links( array(
+            'base'      => str_replace( PHP_INT_MAX, '%#%', esc_url( get_pagenum_link( PHP_INT_MAX ) ) ),
+            'format'    => '?paged=%#%',
+            'current'   => max( 1, $paged ),
+            'total'     => $query->max_num_pages,
+            'prev_text' => __( '&laquo; Previous', 'microblog' ),
+            'next_text' => __( 'Next &raquo;', 'microblog' ),
+        ) ) );
+        ?>
+            
         </nav>
         <?php endif; ?>
 
