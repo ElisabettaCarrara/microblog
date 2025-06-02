@@ -382,8 +382,11 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
  * Handle image upload via AJAX.
  */
 public function handle_image_upload(): void {
-    // Check nonce for security.
-    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'microblog_nonce' ) ) {
+    // Unsplash and sanitize nonce from $_POST.
+    $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+
+    // Verify nonce for security.
+    if ( ! wp_verify_nonce( $nonce, 'microblog_nonce' ) ) {
         wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
         return;
     }
