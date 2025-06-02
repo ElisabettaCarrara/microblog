@@ -11,7 +11,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Post Microblogs from the front-end and show them on a dedicated page.
 
 == UPDATE NOTICE ==
-Please note that this version introduces breaking changes. Plugin architecture and logic have been reworked, and at present backward compatibility is not ensured. I am working on a way to allow importing content from Microblog v1 to Microblog v2 safely.
+Please note that this version introduces breaking changes. The plugin architecture and logic have been reworked, and at present time backward compatibility is not granted. It might be possible to export old content from Microblog v1 to import it in Microblog v2 using a PHP script that you can place in a utility plugin or in the main plugin file.
 
 == Description ==
 Post Microblogs from the front-end and show them on a dedicated page.
