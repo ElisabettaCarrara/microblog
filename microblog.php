@@ -636,52 +636,62 @@ $current_url = get_permalink();
 }
 
     /**
-     * Render display shortcode
-     *
-     * @param array $atts Shortcode attributes.
-     * @return string
-     */
-    public function render_display_shortcode( $atts ): string {
-        $atts = shortcode_atts( array(
-            'posts_per_page' => get_option('microblog_settings')['posts_per_page_display'] ?? 10,
-            'category'       => '',
-            'order'          => 'DESC',
-            'orderby'        => 'date',
-            'show_pagination' => get_option('microblog_settings')['show_pagination_display'] ?? 'yes',
-        ), $atts, 'microblog_display' );
+ * Render display shortcode
+ *
+ * @param array $atts Shortcode attributes.
+ * @return string
+ */
+public function render_display_shortcode( $atts ): string {
+    $atts = shortcode_atts(
+        array(
+            'posts_per_page'   => get_option( 'microblog_settings' )['posts_per_page_display'] ?? 10,
+            'category'         => '',
+            'order'            => 'DESC',
+            'orderby'          => 'date',
+            'show_pagination'  => get_option( 'microblog_settings' )['show_pagination_display'] ?? 'yes',
+            'show_markup'      => 'true', // New attribute, default true
+        ),
+        $atts,
+        'microblog_display'
+    );
 
-        $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+    // Sanitize show_markup to boolean
+    $show_markup = filter_var( $atts['show_markup'], FILTER_VALIDATE_BOOLEAN );
 
-        $args = array(
-            'post_type'      => 'microblog',
-            'posts_per_page' => absint( $atts['posts_per_page'] ),
-            'post_status'    => 'publish',
-            'order'          => in_array( strtoupper( $atts['order'] ), array( 'ASC', 'DESC' ), true ) ? strtoupper( $atts['order'] ) : 'DESC',
-            'orderby'        => sanitize_key( $atts['orderby'] ),
-            'paged'          => $paged,
+    $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+
+    $args = array(
+        'post_type'      => 'microblog',
+        'posts_per_page' => absint( $atts['posts_per_page'] ),
+        'post_status'    => 'publish',
+        'order'          => in_array( strtoupper( $atts['order'] ), array( 'ASC', 'DESC' ), true ) ? strtoupper( $atts['order'] ) : 'DESC',
+        'orderby'        => sanitize_key( $atts['orderby'] ),
+        'paged'          => $paged,
+    );
+
+    if ( ! empty( $atts['category'] ) ) {
+        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'microblog_category',
+                'field'    => 'slug',
+                'terms'    => array_map( 'sanitize_title', explode( ',', $atts['category'] ) ),
+            ),
         );
+    }
 
-        if ( ! empty( $atts['category'] ) ) {
-            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-            $args['tax_query'] = array(
-                array(
-                    'taxonomy' => 'microblog_category',
-                    'field'    => 'slug',
-                    'terms'    => array_map( 'sanitize_title', explode( ',', $atts['category'] ) ),
-                ),
-            );
-        }
+    $query = new WP_Query( $args );
 
-        $query = new WP_Query( $args );
+    if ( ! $query->have_posts() ) {
+        return '<p class="microblog-no-posts">' . esc_html__( 'No microblog posts found.', 'microblog' ) . '</p>';
+    }
 
-        if ( ! $query->have_posts() ) {
-            return '<p class="microblog-no-posts">' . esc_html__( 'No microblog posts found.', 'microblog' ) . '</p>';
-        }
-
-        ob_start();
-        ?>
-        <div class="microblog-display">
-            <?php while ( $query->have_posts() ) : $query->the_post(); ?>
+    ob_start();
+    ?>
+    <div class="microblog-display">
+        <?php while ( $query->have_posts() ) : $query->the_post(); ?>
+            <?php if ( $show_markup ) : ?>
+                <!-- Rich markup version -->
                 <article id="microblog-post-<?php the_ID(); ?>" <?php post_class( 'microblog-post' ); ?>>
                     <header class="microblog-post-header">
                         <h3 class="microblog-post-title">
@@ -724,30 +734,40 @@ $current_url = get_permalink();
                         <?php endif; ?>
                     </footer>
                 </article>
-            <?php endwhile; ?>
-        </div>
+            <?php else : ?>
+                <!-- Minimal markup version -->
+                <div>
+                    <?php if ( has_post_thumbnail() ) : ?>
+                        <a href="<?php the_permalink(); ?>">
+                            <?php the_post_thumbnail( 'medium' ); ?>
+                        </a>
+                    <?php endif; ?>
+                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                </div>
+            <?php endif; ?>
+        <?php endwhile; ?>
+    </div>
 
-        <?php if ( 'yes' === $atts['show_pagination'] && $query->max_num_pages > 1 ) : ?>
-    <nav class="microblog-pagination">
-        <?php
-        echo wp_kses_post( paginate_links( array(
-            'base'      => str_replace( PHP_INT_MAX, '%#%', esc_url( get_pagenum_link( PHP_INT_MAX ) ) ),
-            'format'    => '?paged=%#%',
-            'current'   => max( 1, $paged ),
-            'total'     => $query->max_num_pages,
-            'prev_text' => __( '&laquo; Previous', 'microblog' ),
-            'next_text' => __( 'Next &raquo;', 'microblog' ),
-        ) ) );
-        ?>
-            
+    <?php if ( 'yes' === $atts['show_pagination'] && $query->max_num_pages > 1 ) : ?>
+        <nav class="microblog-pagination">
+            <?php
+            echo wp_kses_post( paginate_links( array(
+                'base'      => str_replace( PHP_INT_MAX, '%#%', esc_url( get_pagenum_link( PHP_INT_MAX ) ) ),
+                'format'    => '?paged=%#%',
+                'current'   => max( 1, $paged ),
+                'total'     => $query->max_num_pages,
+                'prev_text' => __( '&laquo; Previous', 'microblog' ),
+                'next_text' => __( 'Next &raquo;', 'microblog' ),
+            ) ) );
+            ?>
         </nav>
-        <?php endif; ?>
+    <?php endif; ?>
 
-        <?php
-        wp_reset_postdata();
-        return ob_get_clean();
-    }
-
+    <?php
+    wp_reset_postdata();
+    return ob_get_clean();
+}
+    
     /**
      * Add admin menu pages
      */
