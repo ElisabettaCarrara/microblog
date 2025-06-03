@@ -542,6 +542,14 @@ if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
     wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
     return;
 }
+        // Honeypot anti-spam check
+if ( ! empty( $_POST['microblog_hp'] ) ) {
+    wp_send_json_error(
+        array( 'message' => __( 'Spam detected.', 'microblog' ) ),
+        403
+    );
+    return;
+}
 
     if ( ! is_user_logged_in() ) {
         wp_send_json_error( array( 'message' => __( 'You must be logged in to submit posts.', 'microblog' ) ), 401 );
