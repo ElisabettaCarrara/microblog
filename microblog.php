@@ -389,15 +389,7 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
         <?php
         return ob_get_clean();
     }
-
-   <?php
-/**
- * IMPORTANT: Add this hook registration in your plugin's __construct() or init() method:
- * 
- * add_action('wp_ajax_microblog_upload_image', array($this, 'handle_image_upload'));
- * add_action('wp_ajax_nopriv_microblog_upload_image', array($this, 'handle_image_upload')); // If you want non-logged-in users to upload
- */
-
+    
 /**
  * Handle image upload via AJAX.
  */
@@ -727,7 +719,7 @@ $current_url = get_permalink();
                         if ( $categories_list && ! is_wp_error( $categories_list ) ) :
                         ?>
                         <div class="microblog-categories">
-                            <?php echo esc_html( $categories_list ); ?>
+                            <?php echo wp_kses_post( $categories_list ); ?>
                         </div>
                         <?php endif; ?>
                     </footer>
