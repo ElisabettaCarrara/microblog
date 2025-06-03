@@ -1146,80 +1146,150 @@ private function get_default_settings(): array {
      * Render documentation page
      */
     public function render_docs_page(): void {
-        ?>
-        <div class="wrap">
-            <h1><?php esc_html_e( 'MicroBlog Documentation', 'microblog' ); ?></h1>
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e( 'Microblog Plugin Documentation', 'microblog' ); ?></h1>
 
-            <div class="card">
-                <h2 class="title"><?php esc_html_e( 'Overview', 'microblog' ); ?></h2>
-                <p><?php esc_html_e( 'MicroBlog allows users to quickly share short posts, status updates, or thoughts from the front-end.', 'microblog' ); ?></p>
-            </div>
-
-            <div class="card">
-                <h2 class="title"><?php esc_html_e( 'Shortcodes', 'microblog' ); ?></h2>
-
-                <h3><?php esc_html_e( 'Submission Form: ', 'microblog' ); ?><code>[microblog_form]</code></h3>
-                <p><?php esc_html_e( 'Displays the front-end submission form to create new microblog posts.', 'microblog' ); ?></p>
-                <p><strong><?php esc_html_e( 'Parameters:', 'microblog' ); ?></strong></p>
-                <ul>
-                    <li><code>redirect_after_submit</code>: <?php esc_html_e( 'Overrides the global redirect setting. Options:', 'microblog' ); ?>
-                        <ul>
-                            <li><code>home</code>: <?php esc_html_e( 'Redirects to the site\'s home page.', 'microblog' ); ?></li>
-                            <li><code>current</code>: <?php esc_html_e( 'Redirects to the current page where the form is located.', 'microblog' ); ?></li>
-                            <li><em><?php esc_html_e( 'custom_url', 'microblog' ); ?></em>: <?php esc_html_e( 'You can use this setting to redirect to the page showing Microblogs. Provide a full URL like "https://example.com/thanks".', 'microblog' ); ?></li>
-                        </ul>
-                        <?php esc_html_e( 'Example: ', 'microblog' ); ?><code>[microblog_form redirect_after_submit="home"]</code>
-                    </li>
-                </ul>
-
-                <h3><?php esc_html_e( 'Posts Display: ', 'microblog' ); ?><code>[microblog_display]</code></h3>
-                <p><?php esc_html_e( 'Displays a list of microblog posts.', 'microblog' ); ?></p>
-                <p><strong><?php esc_html_e( 'Parameters:', 'microblog' ); ?></strong></p>
-                <ul>
-                    <li><code>posts_per_page</code>: <?php esc_html_e( 'Number of posts to show per page.', 'microblog' ); ?></li>
-                    <li><code>category</code>: <?php esc_html_e( 'Filter posts by one or more category slugs, comma-separated.', 'microblog' ); ?></li>
-                    <li><code>order</code>: <?php esc_html_e( 'Order of posts. Defaults to descending.', 'microblog' ); ?></li>
-                    <li><code>orderby</code>: <?php esc_html_e( 'What to order posts by. Defaults to date.', 'microblog' ); ?></li>
-                    <li><code>show_pagination</code>: <?php esc_html_e( 'Show pagination. Defaults to value in settings.', 'microblog' ); ?></li>
-                </ul>
-                <?php esc_html_e( 'Example: ', 'microblog' ); ?><code>[microblog_display posts_per_page="5" category="news" orderby="title" order="ASC"]</code>
-            </div>
-
-            <div class="card">
-                <h2 class="title"><?php esc_html_e( 'Settings', 'microblog' ); ?></h2>
-                <p><?php esc_html_e( 'Configure MicroBlog options under the "MicroBlog" > "Settings" menu.', 'microblog' ); ?></p>
-                <ul>
-                    <li><?php esc_html_e( 'Default form category.', 'microblog' ); ?></li>
-                    <li><?php esc_html_e( 'Post content character limit.', 'microblog' ); ?></li>
-                    <li><?php esc_html_e( 'Maximum image upload size.', 'microblog' ); ?></li>
-                    <li><?php esc_html_e( 'Redirection after post submission.', 'microblog' ); ?></li>
-                    <li><?php esc_html_e( 'User roles allowed to submit posts.', 'microblog' ); ?></li>
-                    <li><?php esc_html_e( 'Default number of posts per page.', 'microblog' ); ?></li>
-                    <li><?php esc_html_e( 'Default pagination visibility.', 'microblog' ); ?></li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h2 class="title"><?php esc_html_e( 'Styling', 'microblog' ); ?></h2>
-                <p><?php esc_html_e( 'The plugin includes a basic stylesheet (microblog.css). You can override these styles in your theme.', 'microblog' ); ?></p>
-                <ul>
-                    <li><code>.microblog-form-container</code>, <code>.microblog-form</code>, <code>.microblog-field</code></li>
-                    <li><code>.microblog-display</code>, <code>.microblog-post</code>, <code>.microblog-post-title</code></li>
-                    <li><code>.microblog-login-prompt</code>, <code>.microblog-message</code></li>
-                </ul>
-            </div>
-
-            <style>
-                .wrap .card { background: #fff; border: 1px solid #ccd0d4; padding: 1px 20px 10px; margin-bottom: 20px; }
-                .wrap .card h2.title { font-size: 1.5em; margin-bottom: 0.5em; padding-bottom: 0.5em; border-bottom: 1px solid #eee;}
-                .wrap .card h3 { font-size: 1.2em; margin-top: 1.5em; }
-                .wrap .card code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
-                .wrap .card ul { list-style: disc; margin-left: 20px; }
-                .wrap .card ul ul { list-style: circle; margin-left: 20px; }
-            </style>
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Overview', 'microblog' ); ?></h2>
+            <p><?php esc_html_e( 'Microblog enables users to quickly share short posts, status updates, or thoughts directly from the front-end.', 'microblog' ); ?></p>
         </div>
-        <?php
-    }
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Shortcodes', 'microblog' ); ?></h2>
+
+            <h3><?php esc_html_e( 'Submission Form', 'microblog' ); ?>: <code>[microblog_form]</code></h3>
+            <p><?php esc_html_e( 'Displays a front-end form allowing users to submit new microblog posts.', 'microblog' ); ?></p>
+            <p><strong><?php esc_html_e( 'Parameters:', 'microblog' ); ?></strong></p>
+            <ul>
+                <li>
+                    <code>redirect_after_submit</code>: <?php esc_html_e( 'Overrides the global redirect setting. Options:', 'microblog' ); ?>
+                    <ul>
+                        <li><code>home</code>: <?php esc_html_e( 'Redirects to the site\'s homepage after submission.', 'microblog' ); ?></li>
+                        <li><code>current</code>: <?php esc_html_e( 'Redirects to the current page containing the form.', 'microblog' ); ?></li>
+                        <li><em>custom_url</em>: <?php esc_html_e( 'Redirects to a custom URL. Provide a full URL like "https://example.com/thank-you".', 'microblog' ); ?></li>
+                    </ul>
+                    <?php esc_html_e( 'Example:', 'microblog' ); ?> <code>[microblog_form redirect_after_submit="home"]</code>
+                </li>
+            </ul>
+
+            <h3><?php esc_html_e( 'Posts Display', 'microblog' ); ?>: <code>[microblog_display]</code></h3>
+            <p><?php esc_html_e( 'Displays a list of microblog posts.', 'microblog' ); ?></p>
+            <p><strong><?php esc_html_e( 'Parameters:', 'microblog' ); ?></strong></p>
+            <ul>
+                <li><code>posts_per_page</code>: <?php esc_html_e( 'Number of posts to display per page.', 'microblog' ); ?></li>
+                <li><code>category</code>: <?php esc_html_e( 'Filter posts by one or more category slugs (comma-separated).', 'microblog' ); ?></li>
+                <li><code>order</code>: <?php esc_html_e( 'Sort order of posts. Accepts "ASC" or "DESC". Defaults to "DESC".', 'microblog' ); ?></li>
+                <li><code>orderby</code>: <?php esc_html_e( 'Field to order posts by (e.g., date, title). Defaults to "date".', 'microblog' ); ?></li>
+                <li><code>show_pagination</code>: <?php esc_html_e( 'Whether to show pagination links ("yes" or "no"). Defaults to plugin settings.', 'microblog' ); ?></li>
+                <li><code>show_markup</code>: <?php esc_html_e( 'Display full HTML markup ("true") or minimal output ("false"). Defaults to "true".', 'microblog' ); ?></li>
+            </ul>
+            <?php esc_html_e( 'Example:', 'microblog' ); ?> <code>[microblog_display posts_per_page="5" category="news" orderby="title" order="ASC" show_markup="false"]</code>
+        </div>
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Settings', 'microblog' ); ?></h2>
+            <p><?php esc_html_e( 'Configure Microblog options under the "Microblog" > "Settings" menu in the WordPress admin.', 'microblog' ); ?></p>
+            <ul>
+                <li><?php esc_html_e( 'Default category assigned to new posts.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Character limit for post content.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Maximum allowed image upload size.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Redirect behavior after post submission.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'User roles allowed to submit posts.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Default number of posts per page for display.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Default pagination visibility.', 'microblog' ); ?></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Image Uploads', 'microblog' ); ?></h2>
+            <p><?php esc_html_e( 'Users can upload images with their posts. Uploaded images are set as featured images.', 'microblog' ); ?></p>
+        </div>
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Anti-Spam Protection', 'microblog' ); ?></h2>
+            <p><?php esc_html_e( 'The submission form includes a hidden honeypot field to help prevent spam bots.', 'microblog' ); ?></p>
+        </div>
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Styling', 'microblog' ); ?></h2>
+            <p><?php esc_html_e( 'The plugin includes a basic stylesheet (microblog.css). You can override these styles in your theme.', 'microblog' ); ?></p>
+            <ul>
+                <li><code>.microblog-form-container</code>, <code>.microblog-form</code>, <code>.microblog-field</code></li>
+                <li><code>.microblog-display</code>, <code>.microblog-post</code>, <code>.microblog-post-title</code></li>
+                <li><code>.microblog-login-prompt</code>, <code>.microblog-message</code></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Troubleshooting', 'microblog' ); ?></h2>
+            <ul>
+                <li><?php esc_html_e( 'Image upload issues: Check user permissions and file size/type restrictions.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Shortcodes not working: Ensure the plugin is active and shortcodes are used correctly.', 'microblog' ); ?></li>
+                <li><?php esc_html_e( 'Categories displaying raw HTML: Make sure your theme uses proper escaping like wp_kses_post() when outputting categories.', 'microblog' ); ?></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2 class="title"><?php esc_html_e( 'Support & Resources', 'microblog' ); ?></h2>
+            <p>
+                <?php
+                /* translators: %s: GitHub repository URL */
+                printf(
+                    wp_kses(
+                        /* translators: Link to GitHub repo */
+                        __( 'For updates, bug reports, and feature requests, visit the <a href="%s" target="_blank" rel="noopener noreferrer">GitHub repository</a>.', 'microblog' ),
+                        array(
+                            'a' => array(
+                                'href'   => array(),
+                                'target' => array(),
+                                'rel'    => array(),
+                            ),
+                        )
+                    ),
+                    esc_url( 'https://github.com/ElisabettaCarrara/microblog' )
+                );
+                ?>
+            </p>
+        </div>
+
+        <style>
+            .wrap .card {
+                background: #fff;
+                border: 1px solid #ccd0d4;
+                padding: 1em 1.5em;
+                margin-bottom: 20px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                border-radius: 4px;
+            }
+            .wrap .card h2.title {
+                font-size: 1.5em;
+                margin-bottom: 0.5em;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 0.3em;
+            }
+            .wrap .card h3 {
+                font-size: 1.2em;
+                margin-top: 1.5em;
+            }
+            .wrap .card code {
+                background: #f5f5f5;
+                padding: 2px 5px;
+                border-radius: 3px;
+                font-family: monospace, monospace;
+            }
+            .wrap .card ul {
+                list-style: disc;
+                margin-left: 20px;
+            }
+            .wrap .card ul ul {
+                list-style: circle;
+                margin-left: 20px;
+            }
+        </style>
+    </div>
+    <?php
+}
 } // End of Microblog_Plugin class
 
 // Initialize the plugin.
