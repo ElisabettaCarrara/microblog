@@ -390,11 +390,19 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
         return ob_get_clean();
     }
 
-   /**
+   <?php
+/**
+ * IMPORTANT: Add this hook registration in your plugin's __construct() or init() method:
+ * 
+ * add_action('wp_ajax_microblog_upload_image', array($this, 'handle_image_upload'));
+ * add_action('wp_ajax_nopriv_microblog_upload_image', array($this, 'handle_image_upload')); // If you want non-logged-in users to upload
+ */
+
+/**
  * Handle image upload via AJAX.
  */
 public function handle_image_upload(): void {
-    // Unsplash and sanitize nonce from $_POST.
+    // Unslash and sanitize nonce from $_POST.
     $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 
     // Verify nonce for security.
@@ -428,58 +436,58 @@ public function handle_image_upload(): void {
     }
 
     // Unslash entire $_FILES array first.
-$files = wp_unslash( $_FILES );
+    $files = wp_unslash( $_FILES );
 
-// Check if image file is provided (on unslashed data).
-if ( empty( $files['image'] ) ) {
-    wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ), 400 );
-    return;
-}
+    // Check if image file is provided (on unslashed data).
+    if ( empty( $files['image'] ) ) {
+        wp_send_json_error( array( 'message' => __( 'No image file provided.', 'microblog' ) ), 400 );
+        return;
+    }
 
-// Sanitize individual fields.
-$raw_file = $files['image'];
+    // Sanitize individual fields.
+    $raw_file = $files['image'];
 
-$file = array(
-    'name'     => sanitize_file_name( $raw_file['name'] ?? '' ),
-    'type'     => sanitize_text_field( $raw_file['type'] ?? '' ),
-    'tmp_name' => sanitize_text_field( $raw_file['tmp_name'] ?? '' ),
-    'error'    => isset( $raw_file['error'] ) ? (int) $raw_file['error'] : UPLOAD_ERR_NO_FILE,
-    'size'     => isset( $raw_file['size'] ) ? (int) $raw_file['size'] : 0,
-);
-
-// Check for upload errors before proceeding.
-if ( $file['error'] !== UPLOAD_ERR_OK ) {
-    $upload_errors = array(
-        UPLOAD_ERR_INI_SIZE   => __( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.', 'microblog' ),
-        UPLOAD_ERR_FORM_SIZE  => __( 'The uploaded file exceeds the MAX_FILE_SIZE directive specified in the HTML form.', 'microblog' ),
-        UPLOAD_ERR_PARTIAL    => __( 'The uploaded file was only partially uploaded.', 'microblog' ),
-        UPLOAD_ERR_NO_FILE    => __( 'No file was uploaded.', 'microblog' ),
-        UPLOAD_ERR_NO_TMP_DIR => __( 'Missing a temporary folder.', 'microblog' ),
-        UPLOAD_ERR_CANT_WRITE => __( 'Failed to write file to disk.', 'microblog' ),
-        UPLOAD_ERR_EXTENSION  => __( 'A PHP extension stopped the file upload.', 'microblog' ),
+    $file = array(
+        'name'     => sanitize_file_name( $raw_file['name'] ?? '' ),
+        'type'     => sanitize_text_field( $raw_file['type'] ?? '' ),
+        'tmp_name' => sanitize_text_field( $raw_file['tmp_name'] ?? '' ),
+        'error'    => isset( $raw_file['error'] ) ? (int) $raw_file['error'] : UPLOAD_ERR_NO_FILE,
+        'size'     => isset( $raw_file['size'] ) ? (int) $raw_file['size'] : 0,
     );
 
-    $error_message = $upload_errors[ $file['error'] ] ?? __( 'Unknown upload error.', 'microblog' );
+    // Check for upload errors before proceeding.
+    if ( $file['error'] !== UPLOAD_ERR_OK ) {
+        $upload_errors = array(
+            UPLOAD_ERR_INI_SIZE   => __( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.', 'microblog' ),
+            UPLOAD_ERR_FORM_SIZE  => __( 'The uploaded file exceeds the MAX_FILE_SIZE directive specified in the HTML form.', 'microblog' ),
+            UPLOAD_ERR_PARTIAL    => __( 'The uploaded file was only partially uploaded.', 'microblog' ),
+            UPLOAD_ERR_NO_FILE    => __( 'No file was uploaded.', 'microblog' ),
+            UPLOAD_ERR_NO_TMP_DIR => __( 'Missing a temporary folder.', 'microblog' ),
+            UPLOAD_ERR_CANT_WRITE => __( 'Failed to write file to disk.', 'microblog' ),
+            UPLOAD_ERR_EXTENSION  => __( 'A PHP extension stopped the file upload.', 'microblog' ),
+        );
 
-    wp_send_json_error( array( 'message' => $error_message ), 400 );
-    return;
-}
+        $error_message = $upload_errors[ $file['error'] ] ?? __( 'Unknown upload error.', 'microblog' );
 
-// Validate file type using wp_check_filetype().
-$allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
-$file_type = wp_check_filetype( $file['name'] );
+        wp_send_json_error( array( 'message' => $error_message ), 400 );
+        return;
+    }
 
-if ( empty( $file_type['type'] ) || ! in_array( $file_type['type'], $allowed_types, true ) ) {
-    wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ), 400 );
-    return;
-}
+    // Validate file type using wp_check_filetype().
+    $allowed_types = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
+    $file_type = wp_check_filetype( $file['name'] );
 
-// Validate file size.
-$max_file_size = isset( $options['max_file_size'] ) && is_numeric( $options['max_file_size'] ) ? (int) $options['max_file_size'] : 5; // Default 5 MB
-if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
-    wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), esc_html( $max_file_size ) ) ), 400 );
-    return;
-}
+    if ( empty( $file_type['type'] ) || ! in_array( $file_type['type'], $allowed_types, true ) ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.', 'microblog' ) ), 400 );
+        return;
+    }
+
+    // Validate file size.
+    $max_file_size = isset( $options['max_file_size'] ) && is_numeric( $options['max_file_size'] ) ? (int) $options['max_file_size'] : 5; // Default 5 MB
+    if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
+        wp_send_json_error( array( 'message' => sprintf( __( 'File is too large. Maximum size is %s MB.', 'microblog' ), esc_html( $max_file_size ) ) ), 400 );
+        return;
+    }
 
     // Ensure required WP functions are available.
     if ( ! function_exists( 'wp_handle_upload' ) ) {
@@ -527,10 +535,11 @@ if ( $file['size'] > $max_file_size * 1024 * 1024 ) {
     // Retrieve the image URL.
     $image_url = wp_get_attachment_image_url( $attachment_id, 'medium' );
 
-    // Return success response.
+    // Return success response with message (FIXED: Added message for JS)
     wp_send_json_success( array(
         'attachment_id' => $attachment_id,
         'image_url'     => esc_url( $image_url ),
+        'message'       => __( 'Image uploaded successfully!', 'microblog' ), // ADDED: This was missing
     ) );
 }
 
