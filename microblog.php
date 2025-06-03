@@ -373,6 +373,10 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
                     </div>
                 </div>
 
+<div class="microblog-field">
+                    <input type="text" name="microblog_hp" class="microblog-hp-field" autocomplete="off" tabindex="-1" aria-hidden="true">
+                </div>
+                
                 <div class="microblog-field">
                     <button type="submit" id="microblog-submit-btn" class="microblog-submit-button button button-primary">
                         <?php esc_html_e( 'Submit Post', 'microblog' ); ?>
