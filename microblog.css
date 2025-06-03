@@ -118,6 +118,9 @@
     border-color: #f5c6cb;
 }
 
+.microblog-hp-field {
+    display: none;
+}
 
 /* Submit Button */
 .microblog-submit-button {
