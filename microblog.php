@@ -549,17 +549,15 @@ public function handle_image_upload(): void {
      */
     public function handle_post_submission(): void {
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'microblog_nonce' ) ) {
-    wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
-    return;
-}
-        // Honeypot anti-spam check
-if ( ! empty( $_POST['microblog_hp'] ) ) {
-    wp_send_json_error(
-        array( 'message' => __( 'Spam detected.', 'microblog' ) ),
-        403
-    );
-    return;
-}
+        wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'microblog' ) ), 403 );
+        return;
+    }
+
+    // Honeypot anti-spam check
+    if ( ! empty( $_POST['microblog_hp'] ) ) {
+        wp_send_json_error( array( 'message' => __( 'Spam detected.', 'microblog' ) ), 403 );
+        return;
+    }
 
     if ( ! is_user_logged_in() ) {
         wp_send_json_error( array( 'message' => __( 'You must be logged in to submit posts.', 'microblog' ) ), 401 );
@@ -572,15 +570,14 @@ if ( ! empty( $_POST['microblog_hp'] ) ) {
     $can_post = array_reduce( $user->roles, function ( $carry, $role ) use ( $allowed_roles ) {
         return $carry || in_array( $role, $allowed_roles, true );
     }, false );
-    
+
     if ( ! $can_post ) {
         wp_send_json_error( array( 'message' => __( 'You do not have permission to submit posts.', 'microblog' ) ), 403 );
         return;
     }
 
     $title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
-    $content      = isset( $_POST['content'] ) ? sanitize_text_field( wp_unslash( $_POST['content'] ) ) : '';
-    $category_id  = isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0;
+    $content = isset( $_POST['content'] ) ? sanitize_text_field( wp_unslash( $_POST['content'] ) ) : '';
     $thumbnail_id = isset( $_POST['thumbnail'] ) ? absint( $_POST['thumbnail'] ) : 0;
 
     if ( empty( $title ) ) {
@@ -593,6 +590,56 @@ if ( ! empty( $_POST['microblog_hp'] ) ) {
         wp_send_json_error( array( 'message' => sprintf( __( 'Content exceeds character limit of %d.', 'microblog' ), $char_limit ) ) );
         return;
     }
+
+    // --- Category logic start ---
+
+    // Check if categories are disabled globally
+    $categories_disabled = ! empty( $options['disable_categories'] );
+
+    // Get all categories in the taxonomy 'microblog_category'
+    $all_categories = get_terms( array(
+        'taxonomy' => 'microblog_category',
+        'hide_empty' => false,
+    ) );
+
+    // Auto-assign single category if only one exists and setting enabled
+    $auto_assign_single_category = ! empty( $options['auto_assign_single_category'] ) && count( $all_categories ) === 1;
+
+    // Get submitted category if any
+    $submitted_category_id = isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0;
+
+    // Determine category to assign
+    $category_to_assign = 0;
+
+    if ( $categories_disabled ) {
+        // Categories disabled: assign no category
+        $category_to_assign = 0;
+    } elseif ( $auto_assign_single_category ) {
+        // Auto-assign the single category
+        $category_to_assign = $all_categories[0]->term_id;
+    } else {
+        // Multiple categories allowed, check submitted category
+        if ( $submitted_category_id > 0 ) {
+            // Validate submitted category exists
+            $term = term_exists( $submitted_category_id, 'microblog_category' );
+            if ( $term !== 0 && $term !== null ) {
+                $category_to_assign = $submitted_category_id;
+            }
+        }
+
+        // If no valid submitted category, assign default category if set
+        if ( $category_to_assign === 0 ) {
+            $default_category_slug = $options['default_form_category'] ?? '';
+            if ( $default_category_slug ) {
+                $default_term = get_term_by( 'slug', $default_category_slug, 'microblog_category' );
+                if ( $default_term ) {
+                    $category_to_assign = $default_term->term_id;
+                }
+            }
+        }
+    }
+
+    // --- Category logic end ---
 
     $post_data = array(
         'post_title'   => $title,
@@ -609,17 +656,9 @@ if ( ! empty( $_POST['microblog_hp'] ) ) {
         return;
     }
 
-    if ( $category_id > 0 ) {
-        $term = term_exists( $category_id, 'microblog_category' );
-        if ( $term !== 0 && $term !== null ) {
-            wp_set_post_terms( $post_id, array( $category_id ), 'microblog_category' );
-        }
-    } else {
-        $default_category_slug = $options['default_form_category'] ?? 'status';
-        $default_term = get_term_by( 'slug', $default_category_slug, 'microblog_category' );
-        if ( $default_term ) {
-            wp_set_post_terms( $post_id, array( $default_term->term_id ), 'microblog_category' );
-        }
+    // Assign category if applicable
+    if ( $category_to_assign > 0 ) {
+        wp_set_post_terms( $post_id, array( $category_to_assign ), 'microblog_category' );
     }
 
     if ( $thumbnail_id > 0 && get_post_type( $thumbnail_id ) === 'attachment' ) {
@@ -628,19 +667,19 @@ if ( ! empty( $_POST['microblog_hp'] ) ) {
 
     // Get intended redirect URL from frontend (set by shortcode logic)
     $redirect_url = isset( $_POST['redirect_url'] ) 
-    ? esc_url_raw( wp_unslash( $_POST['redirect_url'] ) ) 
-    : get_permalink( $post_id );
+        ? esc_url_raw( wp_unslash( $_POST['redirect_url'] ) ) 
+        : get_permalink( $post_id );
 
-$current_url = get_permalink();
+    $current_url = get_permalink();
 
     // If redirect URL is the current page, don't redirect, just show message
-    $do_redirect = ($redirect_url !== $current_url);
+    $do_redirect = ( $redirect_url !== $current_url );
 
     wp_send_json_success( array(
         'message' => __( 'Post submitted successfully!', 'microblog' ),
         'post_id' => $post_id,
         'redirect' => $do_redirect ? $redirect_url : '',
-        'show_message' => !$do_redirect,
+        'show_message' => ! $do_redirect,
     ) );
 }
 
