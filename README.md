@@ -12,7 +12,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Write short status updates from the front-end of your site and display them on a dedicated page. This plugin can be used to build a social networking site, a microblog site or even a private diary.
 You can customize it to adapt it to your own needs by altering code for CPT, Custom Taxonomy and Image Upload. After that you will need to adjust the Submission Form and eventually the Display Shortcode to accomodate for any new field you added.
 
-== UPDATE NOTICE ==
+== Update Notice ==
 Please note that this version introduces breaking changes. The plugin architecture and logic have been reworked, and at present time backward compatibility is not granted. It might be possible to export old content from Microblog v1 to import it in Microblog v2 using a PHP script that you can place in a utility plugin or in the main plugin file.
 
 == Description ==
