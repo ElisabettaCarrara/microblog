@@ -355,16 +355,22 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
                 </div>
 
                 <div class="microblog-field">
-                    <label for="microblog-category"><?php esc_html_e( 'Category', 'microblog' ); ?></label>
-                    <select id="microblog-category" name="microblog_category">
-                        <?php foreach ( $categories as $category ) : ?>
-                            <option value="<?php echo esc_attr( $category->term_id ); ?>" 
-                                <?php selected( $default_category && $default_category->term_id === $category->term_id ); ?>>
-                                <?php echo esc_html( $category->name ); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+    <label for="microblog-category"><?php esc_html_e( 'Category', 'microblog' ); ?></label>
+    <select 
+        id="microblog-category" 
+        name="microblog_category"
+        <?php if ( ! empty( $hide_category_selector ) ) : ?>
+            data-hide-category="1"
+        <?php endif; ?>
+    >
+        <?php foreach ( $categories as $category ) : ?>
+            <option value="<?php echo esc_attr( $category->term_id ); ?>" 
+                <?php selected( $default_category && $default_category->term_id === $category->term_id ); ?>>
+                <?php echo esc_html( $category->name ); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>
 
                 <div class="microblog-field">
                     <label><?php esc_html_e( 'Thumbnail', 'microblog' ); ?></label>
