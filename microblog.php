@@ -318,13 +318,21 @@ if ( empty( $atts['redirect_after_submit'] ) ) {
      * @return string
      */
     private function render_microblog_form( $atts ): string {
-        $categories = get_terms( array(
-            'taxonomy'   => 'microblog_category',
-            'hide_empty' => false,
-        ) );
+    $options = get_option('microblog_settings');
 
-        $default_category_slug = get_option( 'microblog_settings' )['default_form_category'] ?? 'status';
-        $default_category = get_term_by( 'slug', $default_category_slug, 'microblog_category' );
+    $categories = get_terms( array(
+        'taxonomy'   => 'microblog_category',
+        'hide_empty' => false,
+    ) );
+
+    $default_category_slug = $options['default_form_category'] ?? 'status';
+    $default_category = get_term_by( 'slug', $default_category_slug, 'microblog_category' );
+
+    $disable_categories = ! empty( $options['disable_categories'] );
+    $auto_assign_single_category = ! empty( $options['auto_assign_single_category'] );
+
+    // Determine if category selector should be hidden
+    $hide_category_selector = $disable_categories || ( $auto_assign_single_category && count( $categories ) === 1 );
 
         ob_start();
         ?>
