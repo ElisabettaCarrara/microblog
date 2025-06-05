@@ -258,14 +258,6 @@ class Microblog_Plugin {
             }
         }
 
-        if ($disable_categories) {
-    $hide_category_selector = true;
-} elseif ($auto_assign_single_category && count($categories) === 1) {
-    $hide_category_selector = true;
-} else {
-    $hide_category_selector = false;
-}
-
         // Determine redirect URL
 if ( empty( $atts['redirect_after_submit'] ) ) {
     $redirect_setting = $options['redirect_after_submit'] ?? 'current';
