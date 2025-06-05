@@ -258,13 +258,12 @@ class Microblog_Plugin {
             }
         }
 
-        // In form shortcode rendering logic
-if (categories_disabled()) {
-    // Hide category field entirely
-} elseif (auto_assign_enabled() && count_categories() === 1) {
-    // Hide selector; auto-assign the single category
+        if ($disable_categories) {
+    $hide_category_selector = true;
+} elseif ($auto_assign_single_category && count($categories) === 1) {
+    $hide_category_selector = true;
 } else {
-    // Show selector; enforce default if none selected
+    $hide_category_selector = false;
 }
 
         // Determine redirect URL
