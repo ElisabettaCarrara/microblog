@@ -819,34 +819,26 @@ public function render_display_shortcode( $atts ): string {
     /**
      * Add admin menu pages
      */
-    public function add_admin_pages(): void {
-        add_menu_page(
-            __( 'MicroBlog Settings', 'microblog' ),
-            __( 'MicroBlog', 'microblog' ),
-            'manage_options',
-            'microblog-settings',
-            array( $this, 'render_settings_page' ),
-            'dashicons-admin-settings',
-            30
-        );
+   public function add_admin_pages(): void {
+    // Main settings page under Dashboard > Settings
+    add_options_page(
+        __( 'MicroBlog Settings', 'microblog' ),
+        __( 'MicroBlog', 'microblog' ),
+        'manage_options',
+        'microblog-settings',
+        array( $this, 'render_settings_page' )
+    );
 
-        add_submenu_page(
-            'microblog-settings',
-            __( 'Settings', 'microblog' ),
-            __( 'Settings', 'microblog' ),
-            'manage_options',
-            'microblog-settings'
-        );
-
-        add_submenu_page(
-            'microblog-settings',
-            __( 'How to Use - MicroBlog', 'microblog' ),
-            __( 'How to Use', 'microblog' ),
-            'manage_options',
-            'microblog-docs',
-            array( $this, 'render_docs_page' )
-        );
-    }
+    // Add "How to Use" as a submenu under Settings > MicroBlog
+    add_submenu_page(
+        'microblog-settings',
+        __( 'How to Use - MicroBlog', 'microblog' ),
+        __( 'How to Use', 'microblog' ),
+        'manage_options',
+        'microblog-docs',
+        array( $this, 'render_docs_page' )
+    );
+}
 
     /**
      * Render settings page
@@ -878,6 +870,8 @@ public function register_settings(): void {
             'redirect_custom_url' => '',
             'allowed_roles' => array( 'administrator' ),
             'default_form_category' => 'status',
+            'disable_categories' => 0,
+            'auto_assign_single_category' => 0,
             'posts_per_page_display' => 10,
             'show_pagination_display' => 'yes',
             'character_limit' => 0,
@@ -885,12 +879,28 @@ public function register_settings(): void {
         )
     ) );
 
-    // General Section
+    // Category Settings Section (new)
     add_settings_section(
-        'microblog_general_section',
-        __( 'General Settings', 'microblog' ),
-        null, 
+        'microblog_category_section',
+        __( 'Category Settings', 'microblog' ),
+        null,
         'microblog-settings'
+    );
+
+    add_settings_field(
+        'disable_categories',
+        __( 'Disable Categories', 'microblog' ),
+        array( $this, 'render_disable_categories_field' ),
+        'microblog-settings',
+        'microblog_category_section'
+    );
+
+    add_settings_field(
+        'auto_assign_single_category',
+        __( 'Auto-Assign Single Category', 'microblog' ),
+        array( $this, 'render_auto_assign_single_category_field' ),
+        'microblog-settings',
+        'microblog_category_section'
     );
 
     add_settings_field(
@@ -898,7 +908,15 @@ public function register_settings(): void {
         __( 'Default Form Category', 'microblog' ),
         array( $this, 'render_default_category_field' ),
         'microblog-settings',
-        'microblog_general_section'
+        'microblog_category_section'
+    );
+
+    // General Settings Section (rename or keep for other general settings)
+    add_settings_section(
+        'microblog_general_section',
+        __( 'General Settings', 'microblog' ),
+        null, 
+        'microblog-settings'
     );
 
     add_settings_field(
@@ -984,18 +1002,30 @@ public function register_settings(): void {
 
 public function render_default_category_field(): void {
     $options = get_option( 'microblog_settings' );
-    $current_slug = $options['default_form_category'] ?? 'status';
-    $categories = get_terms( array( 'taxonomy' => 'microblog_category', 'hide_empty' => false ) );
+    $current_slug = $options['default_form_category'] ?? '';
+    $categories = get_terms( array(
+        'taxonomy' => 'microblog_category',
+        'hide_empty' => false,
+    ) );
+
+    // Check if categories are disabled
+    $categories_disabled = ! empty( $options['disable_categories'] );
     ?>
-    <select name="microblog_settings[default_form_category]">
+    <select name="microblog_settings[default_form_category]" <?php disabled( $categories_disabled ); ?>>
+        <option value=""><?php esc_html_e( '— Select —', 'microblog' ); ?></option>
         <?php foreach ( $categories as $category ) : ?>
             <option value="<?php echo esc_attr( $category->slug ); ?>" <?php selected( $current_slug, $category->slug ); ?>>
                 <?php echo esc_html( $category->name ); ?>
             </option>
         <?php endforeach; ?>
     </select>
-    <p class="description"><?php esc_html_e( 'Select the default category for new posts submitted via the form.', 'microblog' ); ?></p>
-    <?php
+    <?php if ( $categories_disabled ) : ?>
+        <p class="description" style="color: #a00;">
+            <?php esc_html_e( 'Categories are disabled, so this setting is ignored.', 'microblog' ); ?>
+        </p>
+    <?php else : ?>
+        <p class="description"><?php esc_html_e( 'Select the default category for new posts submitted via the form.', 'microblog' ); ?></p>
+    <?php endif;
 }
 
 public function render_character_limit_field(): void {
