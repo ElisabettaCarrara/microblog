@@ -281,6 +281,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (categorySelect) {
             formData.append('category', categorySelect.value);
         }
+
+    if (categorySelect && categorySelect.dataset.hideCategory === "1") {
+        categorySelect.style.display = 'none';
+
+        // Also hide the label
+        const label = document.querySelector('label[for="microblog-category"]');
+        if (label) {
+            label.style.display = 'none';
+        }
+    }
+});
         
         if (thumbnailIdInput && thumbnailIdInput.value) {
             formData.append('thumbnail', thumbnailIdInput.value);
