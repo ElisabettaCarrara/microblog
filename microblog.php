@@ -168,6 +168,12 @@ class Microblog_Plugin {
         }
     }
 
+    public function render_disable_categories_field() {
+    $option = get_option('microblog_disable_categories');
+    echo '<input type="checkbox" name="microblog_disable_categories" value="1" ' 
+        . checked(1, $option, false) . '/>';
+}
+
     /**
      * Register shortcodes
      */
