@@ -168,10 +168,22 @@ class Microblog_Plugin {
         }
     }
 
-    public function render_disable_categories_field() {
+    /**
+ * Render the "Disable Categories" checkbox field.
+ */
+public function render_disable_categories_field() {
     $option = get_option('microblog_disable_categories');
-    echo '<input type="checkbox" name="microblog_disable_categories" value="1" ' 
-        . checked(1, $option, false) . '/>';
+    echo '<input type="checkbox" name="microblog_disable_categories" value="1" ' . checked(1, $option, false) . ' />';
+    echo '<label for="microblog_disable_categories"> ' . esc_html__('Disable categories for microblog posts', 'microblog') . '</label>';
+}
+
+/**
+ * Render the "Auto Assign Single Category" checkbox field.
+ */
+public function render_auto_assign_single_category_field() {
+    $option = get_option('microblog_auto_assign_single_category');
+    echo '<input type="checkbox" name="microblog_auto_assign_single_category" value="1" ' . checked(1, $option, false) . ' />';
+    echo '<label for="microblog_auto_assign_single_category"> ' . esc_html__('Automatically assign the only available category to new microblog posts', 'microblog') . '</label>';
 }
 
     /**
