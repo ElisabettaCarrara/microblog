@@ -3,7 +3,7 @@
  * Plugin Name: MicroBlog
  * Plugin URI: https://elica-webservices.it
  * Description: Adds a minimal front-end blogging form to your site giving it a microblog feel. Inspired by Narwhal Microblog
- * Version: 1.9
+ * Version: 1.1
  * Requires CP: 1.0
  * Requires PHP: 8.1
  * Author: Elisabetta Carrara
@@ -189,9 +189,14 @@ function microblog_form_shortcode($atts, $content = null) {
     
     $html .= '<form id="microblog-form" method="post">';
     
+    // Create the placeholder text using proper i18n functions
+    $placeholder_line1 = __('(Write the Title into parenthesis)', 'microblog');
+    $placeholder_line2 = __('Your #content. #hashtags become tags', 'microblog');
+    $placeholder_text = $placeholder_line1 . "\n" . $placeholder_line2;
+    
     // Textarea for microblog content with helpful placeholder
     $html .= '<textarea id="microblog-content" name="microblog_content" placeholder="' . 
-             esc_attr__('(Write the Title into parenthesis)' . "\n" . 'Your #content. #hashtags become tags', 'microblog') . 
+             esc_attr($placeholder_text) . 
              '"></textarea>';
     
     // Category selection dropdown
@@ -248,6 +253,7 @@ function microblog_display_shortcode($atts) {
     );
 
     // Add taxonomy query if category is specified
+    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Necessary for filtering by category
     if (!empty($atts['category'])) {
         $args['tax_query'] = array(
             array(
@@ -319,7 +325,7 @@ function microblog_submit() {
     }
 
     // Get and sanitize the content (title has already been processed by JavaScript)
-    $content = isset($_POST['microblog_content']) ? wp_unslash($_POST['microblog_content']) : '';
+    $content = isset($_POST['microblog_content']) ? sanitize_textarea_field(wp_unslash($_POST['microblog_content'])) : '';
     $content = trim($content);
     
     // Get the title (processed by JavaScript)
