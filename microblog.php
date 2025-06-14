@@ -253,8 +253,8 @@ function microblog_display_shortcode($atts) {
     );
 
     // Add taxonomy query if category is specified
-    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Necessary for filtering by category
     if (!empty($atts['category'])) {
+        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Necessary for filtering by category
         $args['tax_query'] = array(
             array(
                 'taxonomy' => 'microblog_category',
