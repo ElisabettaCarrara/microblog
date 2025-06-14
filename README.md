@@ -2,42 +2,44 @@
 === MicroBlog ===
 Contributors: Elisabetta Carrara
 Tags: microblog, frontend, front-end
-Requires CP: 2.0
+Requires CP: 1.0
 Tested up to CP: 2.4.1
 Requires PHP: 8.1
-Stable tag: 2.0
+Stable tag: 1.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Write short status updates from the front-end of your site and display them on a dedicated page. This plugin can be used to build a social networking site, a microblog site or even a private diary.
-You can customize it to adapt it to your own needs by altering code for CPT, Custom Taxonomy and Image Upload. After that you will need to adjust the Submission Form and eventually the Display Shortcode to accomodate for any new field you added.
 
 == Update Notice ==
-Please note that this version introduces breaking changes. The plugin architecture and logic have been reworked, and at present time backward compatibility is not granted. It might be possible to export old content from Microblog v1 to import it in Microblog v2 using a PHP script that you can place in a utility plugin or in the main plugin file.
+Please note that this version introduces breaking changes. You will need to update your shortcodes to [microblog_form] for the submission form and [microblog_display] for the Microblogs liting page.
+I am preparing v1 to be able to provide a smooth migration to v2, as of now I am working on migration from v1.0 to v1.9 - after that I will ensure that migration runs smoothly from v1.9 to v2.0.
 
 == Description ==
 Post Microblogs from the front-end and show them on a dedicated page.
 
 Use shortcode [microblog_form] to display the form on a page and [microblog_display] to show the Microblog Page.
 
-As of now Microblog CPT supports Title, Content, Custom Taxonomy (Microblog Category) set to "status" as default, and Thumbnail.
+The Microblog form parses content in a particular format.
 
-The setting page includes the following options:
-- Default Category Selection for the Form
-- Post Character limit
-- Max File Size
-- Redirection logic (Home, Custom URL that activates the field to input the URL, and Same Page) - You can use it to set the redirection to the page where the [microblog_display] shortcode is for example.
-- Role(s) selection (you can set the user roles that are allowed to submit the form)
-- Number of Microblogs to display per page
-- Show Pagination
+Content in round brakets will be parsed as Title.
+Content without brakets will be parsed as Microblog Content.
+Hashtags will be parsed as Tags
+
+EXAMPLE:
+
+(My awesome Microblog)
+This is my very first Microblog on this site!
+#firstpost
+
+You will also be able to select a category from the dropdown before submitting your Microblog.
 
 == Installation ==
 
 1. Go to the install ClassicPress plugins page within your admin dashboard
 2. Search for MicroBlog
 3. Install & Activate
-4. Use the shortcode [microblog_form] and [microblog_display] on any page
-5. Go to Settings to configure The aforementioned settings
+4. Use the shortcode [microblog_form] and [microblog_display] on the pages where you want the Form and Display to be
 
 == Donate ==
 If you find my software useful please consider [donating to support its maintenance](https://donate.stripe.com/3cI14n0hv1PCcx7ccS9ws01).
@@ -46,6 +48,9 @@ If you find my software useful please consider [donating to support its maintena
 
 = 2.0 =
 * Complete plugin logic and architecture rework. BREAKING CHANGES
+
+= 1.9 =
+* Code refactor and improved compatibility with v2 to allow migration. BREAKING CHANGES
 
 = 1.0 =
 * Rebrand Narwhal Microblog and correct the code to work with PHP 8.1
