@@ -1,533 +1,327 @@
 /**
- * Microblog Frontend JavaScript
- * Handles form submission, image upload, and media library integration (Vanilla JS)
+ * MicroBlog Frontend JavaScript
+ * 
+ * Handles the frontend form submission for microblog posts,
+ * including title extraction from parentheses and hashtag processing.
+ * 
+ * @since 1.0.0
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    'use strict';
-    
-    // --- DOM Element References ---
-    const microblogForm = document.getElementById('microblog-form');
-    const uploadBtn = document.getElementById('microblog-upload-btn');
-    const imagePreviewDiv = document.getElementById('microblog-image-preview');
-    const previewImg = document.getElementById('microblog-preview-img');
-    const removeImageBtn = document.getElementById('microblog-remove-image');
-    const thumbnailIdInput = document.getElementById('microblog-thumbnail-id');
-    const messageDiv = document.getElementById('microblog-message');
-    const titleInput = document.getElementById('microblog-title');
-    const categorySelect = document.getElementById('microblog-category');
-    const contentTextarea = document.getElementById('microblog_content');
-    
-    let mediaFrame = null; // For WordPress media uploader
+document.addEventListener('DOMContentLoaded', function () {
+    // Get the microblog form element
+    var form = document.querySelector('form#microblog-form');
+    if (!form) return;
 
-    // --- Initialization ---
+    // Get form elements
+    var textarea = form.querySelector('textarea#microblog-content');
+    var submitBtn = form.querySelector('input[type="submit"]');
+    var categorySelect = form.querySelector('select#microblog-category');
 
-    // Initialize media uploader (WP Media Library or fallback)
-    if (uploadBtn) {
-        if (typeof wp !== 'undefined' && wp.media && typeof wp.media.featuredImage !== 'undefined') {
-            initWPMediaUploader();
-        } else {
-            initFallbackUploader();
-        }
+    // Validate that all required elements exist
+    if (!textarea || !submitBtn || !categorySelect) {
+        console.error('MicroBlog: Required form elements not found');
+        return;
     }
-    
-    // Initialize form submission handler
-    if (microblogForm) {
-        microblogForm.addEventListener('submit', handleFormSubmission);
-    }
-
-    // Initialize image removal functionality
-    if (removeImageBtn) {
-        removeImageBtn.addEventListener('click', handleRemoveImage);
-        removeImageBtn.setAttribute('aria-label', 'Remove selected image');
-        removeImageBtn.setAttribute('title', 'Remove image');
-    }
-
-    // Initialize other components
-    initOEmbedSupport();
-    initFormValidation();
-    initResponsivePreview();
-    initAccessibility();
-    initCategoryVisibility();
-
-    // --- WordPress Media Uploader Functions ---
-    
-    /**
-     * Initialize WordPress media uploader
-     */
-    function initWPMediaUploader() {
-        uploadBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Create media frame if it doesn't exist
-            if (mediaFrame) {
-                mediaFrame.open();
-                return;
-            }
-            
-            mediaFrame = wp.media({
-                title: getLocalizedText('selectImageTitle', 'Select Image'),
-                button: {
-                    text: getLocalizedText('useImageButton', 'Use this image')
-                },
-                multiple: false,
-                library: {
-                    type: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-                }
-            });
-            
-            // Handle image selection
-            mediaFrame.on('select', function() {
-                const attachment = mediaFrame.state().get('selection').first().toJSON();
-                
-                if (isValidImageType(attachment.mime)) {
-                    const imageUrl = attachment.sizes?.medium?.url || 
-                                   attachment.sizes?.thumbnail?.url || 
-                                   attachment.url;
-                    setSelectedImage(attachment.id, imageUrl);
-                } else {
-                    showMessage(getLocalizedText('invalidFileType', 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.'), 'error');
-                }
-            });
-            
-            mediaFrame.open();
-        });
-    }
-    
-    // --- Fallback Uploader Functions ---
 
     /**
-     * Initialize fallback uploader for environments without wp.media
+     * Handle form submission
      */
-    function initFallbackUploader() {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = '.jpg,.jpeg,.png,.webp,.gif';
-        fileInput.style.display = 'none';
+    submitBtn.addEventListener('click', function (event) {
+        event.preventDefault();
         
-        if (document.body) {
-            document.body.appendChild(fileInput);
-        } else {
-            console.error("MicroBlog JS: document.body not found for fallback uploader.");
+        // Disable submit button to prevent double submission
+        submitBtn.disabled = true;
+        submitBtn.value = 'Submitting...';
+
+        // Get form values
+        var rawContent = textarea.value.trim();
+        var category = categorySelect.value || microblogData.defaultCategory;
+
+        // Validate content
+        if (!rawContent) {
+            showMessage(microblogData.messages.emptyContent, 'error');
+            resetSubmitButton();
             return;
         }
-        
-        uploadBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            fileInput.click();
-        });
-        
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const file = this.files[0];
-                
-                if (!isValidImageFile(file)) {
-                    showMessage(getLocalizedText('invalidFileTypeFallback', 'Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.'), 'error');
-                    this.value = '';
-                    return;
-                }
-                
-                // Check file size
-                const maxFileSizeMB = getConfigValue('maxFileSizeMB', 5);
-                if (file.size > maxFileSizeMB * 1024 * 1024) {
-                    const message = getLocalizedText('fileTooLarge', 'File is too large. Maximum size is %s MB.');
-                    showMessage(message.replace('%s', maxFileSizeMB), 'error');
-                    this.value = '';
-                    return;
-                }
-                
-                uploadImageFileViaAjax(file);
-            }
-        });
-    }
-    
-    /**
-     * Upload image file via AJAX (for fallback uploader)
-     */
-    function uploadImageFileViaAjax(file) {
-        const formData = new FormData();
-        formData.append('action', 'microblog_upload_image');
-        formData.append('nonce', getConfigValue('nonce', ''));
-        formData.append('image', file);
-        
-        showMessage(getLocalizedText('uploadingImage', 'Uploading image...'), 'info');
-        setSubmitButtonState(true, getLocalizedText('uploadingImage', 'Uploading...'));
 
-        fetch(getConfigValue('ajax_url', '/wp-admin/admin-ajax.php'), {
+        // Process the content to extract title and clean content
+        var processedData = processContent(rawContent);
+
+        // Prepare form data for AJAX
+        var data = new FormData();
+        data.append('action', 'microblog_submit');
+        data.append('microblog_content', processedData.content);
+        data.append('microblog_title', processedData.title);
+        data.append('microblog_category', category);
+        data.append('microblog_nonce', microblogData.nonce);
+
+        // Send AJAX request
+        fetch(microblogData.ajaxurl, {
             method: 'POST',
-            body: formData
+            credentials: 'same-origin',
+            body: data,
         })
-        .then(response => {
+        .then(function (response) {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error('Network response was not ok');
             }
             return response.json();
         })
-        .then(data => {
-            if (data.success) {
-                setSelectedImage(data.data.attachment_id, data.data.image_url);
-                showMessage(data.data.message || getLocalizedText('imageUploadedSuccess', 'Image uploaded successfully!'), 'success');
-            } else {
-                showMessage(data.data.message || getLocalizedText('uploadFailed', 'Upload failed'), 'error');
-            }
+        .then(function (response) {
+            handleSubmissionResponse(response);
         })
-        .catch(error => {
-            console.error('MicroBlog Upload error:', error);
-            showMessage(getLocalizedText('uploadError', 'Upload failed. Please try again.'), 'error');
-        })
-        .finally(() => {
-            setSubmitButtonState(false);
+        .catch(function (error) {
+            console.error('MicroBlog Submission Error:', error);
+            showMessage(microblogData.messages.error, 'error');
+            resetSubmitButton();
         });
-    }
-
-    // --- Image Handling Functions ---
+    });
 
     /**
-     * Set selected image in preview and update hidden input
+     * Process content to extract title and hashtags
+     * 
+     * @param {string} rawContent - The raw content from the textarea
+     * @returns {Object} Object containing processed title, content, and hashtags
      */
-    function setSelectedImage(attachmentId, imageUrl) {
-        if (thumbnailIdInput) {
-            thumbnailIdInput.value = attachmentId;
-        }
-        
-        if (previewImg) {
-            previewImg.src = imageUrl;
-            previewImg.alt = getLocalizedText('imagePreviewAlt', 'Selected image preview');
-        }
-        
-        if (imagePreviewDiv) {
-            imagePreviewDiv.style.display = 'block';
-        }
-        
-        if (uploadBtn) {
-            uploadBtn.textContent = getLocalizedText('changeImageButton', 'Change Image');
-        }
-    }
+    function processContent(rawContent) {
+        var lines = rawContent.split('\n');
+        var title = '';
+        var contentLines = lines.slice(); // Create a copy of lines array
+        var hashtags = [];
 
-    /**
-     * Handle removal of the selected image
-     */
-    function handleRemoveImage(e) {
-        e.preventDefault();
-        
-        if (thumbnailIdInput) {
-            thumbnailIdInput.value = '';
-        }
-        
-        if (imagePreviewDiv) {
-            imagePreviewDiv.style.display = 'none';
-        }
-        
-        if (previewImg) {
-            previewImg.src = '';
-            previewImg.alt = '';
-        }
-        
-        if (uploadBtn) {
-            uploadBtn.textContent = getLocalizedText('chooseImageButton', 'Choose Image');
-        }
-        
-        // Clear fallback file input if it exists
-        const fallbackInput = document.querySelector('input[type="file"][accept=".jpg,.jpeg,.png,.webp,.gif"]');
-        if (fallbackInput) {
-            fallbackInput.value = '';
-        }
-    }
-    
-    // --- Form Submission ---
-
-    /**
-     * Handle form submission via AJAX
-     */
-    function handleFormSubmission(e) {
-        e.preventDefault();
-        
-        // Get TinyMCE content if available, otherwise textarea
-        let content = '';
-        if (typeof tinyMCE !== 'undefined' && tinyMCE.get('microblog_content')) {
-            content = tinyMCE.get('microblog_content').getContent();
-        } else if (contentTextarea) {
-            content = contentTextarea.value;
-        }
-        
-        // Validate required fields
-        if (!titleInput || !titleInput.value.trim()) {
-            showMessage(getLocalizedText('titleRequired', 'Title is required.'), 'error');
-            if (titleInput) titleInput.focus();
-            return;
-        }
-        
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('action', 'microblog_submit_post');
-        formData.append('nonce', getConfigValue('nonce', ''));
-        formData.append('title', titleInput.value.trim());
-        formData.append('content', content);
-        
-        if (categorySelect) {
-            formData.append('category', categorySelect.value);
-        }
-        
-        if (thumbnailIdInput && thumbnailIdInput.value) {
-            formData.append('thumbnail', thumbnailIdInput.value);
-        }
-
-        // Add redirect_url to FormData
-        if (microblogForm.dataset.redirect) {
-            formData.append('redirect_url', microblogForm.dataset.redirect);
-        }
-        
-        // Show loading state
-        setSubmitButtonState(true, getLocalizedText('submitting', 'Submitting...'));
-        showMessage(getLocalizedText('submittingPost', 'Submitting post...'), 'info');
-        
-        // Submit form
-        fetch(getConfigValue('ajax_url', '/wp-admin/admin-ajax.php'), {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        // Check for title only on the first line if it's within parentheses
+        if (lines.length > 0) {
+            var firstLine = lines[0].trim();
+            if (firstLine.startsWith('(') && firstLine.endsWith(')')) {
+                // Extract title from parentheses
+                title = firstLine.substring(1, firstLine.length - 1).trim();
+                contentLines.shift(); // Remove the title line from content
             }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                showMessage(data.data.message || getLocalizedText('postSubmittedSuccess', 'Post submitted successfully!'), 'success');
-                
-                // Reset form
-                microblogForm.reset(); 
-                
-                // Reset TinyMCE editor
-                if (typeof tinyMCE !== 'undefined' && tinyMCE.get('microblog_content')) {
-                    tinyMCE.get('microblog_content').setContent('');
-                }
-                
-                // Reset image preview
-                handleRemoveImage(new Event('click'));
-                
-                // Redirect if specified
-                const redirectUrlFromServer = data.data.redirect;
-                if (redirectUrlFromServer) {
-                    setTimeout(() => {
-                        window.location.href = redirectUrlFromServer;
-                    }, 2000);
-                }
-                
-            } else {
-                showMessage(data.data.message || getLocalizedText('submissionFailed', 'Submission failed'), 'error');
-            }
-        })
-        .catch(error => {
-            console.error('MicroBlog Submission error:', error);
-            showMessage(getLocalizedText('submissionError', 'Submission failed. Please try again.'), 'error');
-        })
-        .finally(() => {
-            setSubmitButtonState(false);
+        }
+
+        // Extract hashtags from all content lines (including title line if present)
+        lines.forEach(function (line) {
+            var lineHashtags = extractHashtagsFromLine(line);
+            hashtags = hashtags.concat(lineHashtags);
         });
+
+        // Remove duplicates from hashtags
+        hashtags = [...new Set(hashtags)];
+
+        // Rebuild content without title line
+        var processedContent = contentLines.join('\n').trim();
+
+        return {
+            title: title,
+            content: processedContent,
+            hashtags: hashtags
+        };
     }
 
     /**
-     * Helper to set submit button state
+     * Extract hashtags from a single line of text
+     * 
+     * @param {string} line - The line of text to process
+     * @returns {Array} Array of hashtags (without the # symbol)
      */
-    function setSubmitButtonState(disabled, text) {
-        const submitBtn = microblogForm ? microblogForm.querySelector('button[type="submit"]') : null;
-        if (submitBtn) {
-            submitBtn.disabled = disabled;
-            if (text && disabled) {
-                if (!submitBtn.dataset.originalText) {
-                    submitBtn.dataset.originalText = submitBtn.textContent;
+    function extractHashtagsFromLine(line) {
+        var hashtags = [];
+        // Match hashtags with word characters (letters, digits, underscore)
+        // Using a more comprehensive regex that handles Unicode characters
+        var hashtagRegex = /(?:^|\s)(#[\w\u00C0-\u017F\u0400-\u04FF]+)/g;
+        var matches = line.match(hashtagRegex);
+        
+        if (matches) {
+            matches.forEach(function (match) {
+                // Remove leading whitespace and '#', convert to lowercase
+                var cleanHashtag = match.trim().substring(1).toLowerCase();
+                if (cleanHashtag && hashtags.indexOf(cleanHashtag) === -1) {
+                    hashtags.push(cleanHashtag);
                 }
-                submitBtn.textContent = text;
-            } else if (!disabled) {
-                submitBtn.textContent = submitBtn.dataset.originalText || getLocalizedText('submitButtonDefault', 'Submit Post');
-            }
+            });
         }
+        
+        return hashtags;
     }
-    
-    // --- Category Visibility ---
-    
+
     /**
-     * Initialize category visibility based on data attribute
+     * Handle the response from the AJAX submission
+     * 
+     * @param {Object} response - The JSON response from the server
      */
-    function initCategoryVisibility() {
-        if (categorySelect && categorySelect.dataset.hideCategory === "1") {
-            categorySelect.style.display = 'none';
-
-            // Also hide the label
-            const label = document.querySelector('label[for="microblog-category"]');
-            if (label) {
-                label.style.display = 'none';
+    function handleSubmissionResponse(response) {
+        if (response && response.success) {
+            // Clear the form
+            textarea.value = '';
+            
+            // Reset category to default
+            if (microblogData.defaultCategory) {
+                var defaultOption = categorySelect.querySelector('option[value="' + microblogData.defaultCategory + '"]');
+                if (defaultOption) {
+                    categorySelect.value = microblogData.defaultCategory;
+                }
             }
+
+            // Show success message
+            var successMessage = microblogData.messages.success;
+            if (response.data && response.data.message) {
+                successMessage = response.data.message;
+            }
+            showMessage(successMessage, 'success');
+
+            // Auto-redirect to the created post after a short delay
+            if (response.data && response.data.post_id) {
+                setTimeout(function() {
+                    window.location.href = microblogData.siteUrl + '?p=' + response.data.post_id;
+                }, 2000); // 2 second delay to show the success message
+            }
+        } else {
+            // Handle error response
+            var errorMessage = microblogData.messages.error;
+            if (response && response.data) {
+                if (typeof response.data === 'string') {
+                    errorMessage = response.data;
+                } else if (response.data.message) {
+                    errorMessage = response.data.message;
+                }
+            }
+            showMessage(errorMessage, 'error');
+            resetSubmitButton();
         }
     }
-    
-    // --- UI Helper Functions ---
 
     /**
-     * Show message to user
+     * Reset the submit button to its original state
+     */
+    function resetSubmitButton() {
+        submitBtn.disabled = false;
+        submitBtn.value = 'Submit';
+    }
+
+    /**
+     * Display a message in ClassicPress/WordPress style
+     * 
+     * @param {string} message - The message to display
+     * @param {string} type - The type of message ('success', 'error', 'warning', 'info')
      */
     function showMessage(message, type) {
-        if (!messageDiv) return;
+        type = type || 'info';
         
-        messageDiv.textContent = message;
-        messageDiv.className = 'microblog-message microblog-message-' + type;
-        messageDiv.style.display = 'block';
-        messageDiv.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        // Get or create the message container
+        var messageContainer = document.getElementById('microblog-messages');
+        if (!messageContainer) {
+            messageContainer = document.createElement('div');
+            messageContainer.id = 'microblog-messages';
+            messageContainer.className = 'microblog-messages';
+            form.parentNode.insertBefore(messageContainer, form);
+        }
+
+        // Clear existing messages
+        messageContainer.innerHTML = '';
+
+        // Create the message element
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'notice notice-' + type + ' is-dismissible microblog-notice';
         
-        // Auto-hide success/info messages after a delay
-        if (type === 'success' || type === 'info') {
-            setTimeout(() => {
-                if (messageDiv.textContent === message) {
-                    messageDiv.style.display = 'none';
-                }
-            }, type === 'success' ? 5000 : 3000);
-        }
-    }
-    
-    // --- Validation Functions ---
+        // Create message content
+        var messageParagraph = document.createElement('p');
+        messageParagraph.textContent = message;
+        messageDiv.appendChild(messageParagraph);
 
-    /**
-     * Check if image MIME type is valid
-     */
-    function isValidImageType(mimeType) {
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        return validTypes.includes(mimeType);
-    }
-    
-    /**
-     * Check if uploaded file is a valid image type
-     */
-    function isValidImageFile(file) {
-        return isValidImageType(file.type);
-    }
-    
-    // --- oEmbed & Editor Enhancements ---
+        // Create dismiss button
+        var dismissButton = document.createElement('button');
+        dismissButton.type = 'button';
+        dismissButton.className = 'notice-dismiss';
+        dismissButton.innerHTML = '<span class="screen-reader-text">Dismiss this notice.</span>';
+        dismissButton.addEventListener('click', function() {
+            messageDiv.style.display = 'none';
+        });
+        messageDiv.appendChild(dismissButton);
 
-    /**
-     * Initialize oEmbed-like support for content editor
-     */
-    function initOEmbedSupport() {
-        if (typeof tinyMCE !== 'undefined') {
-            tinyMCE.on('AddEditor', function(e) {
-                const editor = e.editor;
-                
-                editor.on('init', function() {
-                    editor.dom.addStyle(`
-                        .mce-preview-object {
-                            border: 1px dashed #ccc;
-                            padding: 10px;
-                            margin: 10px 0;
-                            background: #f9f9f9;
-                            max-width: 100%;
-                            box-sizing: border-box;
+        // Add the message to the container
+        messageContainer.appendChild(messageDiv);
+
+        // Scroll to the message
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Auto-dismiss success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(function() {
+                if (messageDiv && messageDiv.style.display !== 'none') {
+                    messageDiv.style.opacity = '0';
+                    messageDiv.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(function() {
+                        if (messageDiv.parentNode) {
+                            messageDiv.parentNode.removeChild(messageDiv);
                         }
-                        .mce-preview-object iframe {
-                            max-width: 100%;
-                        }
-                    `);
-                });
-            });
-        }
-    }
-    
-    // --- Dynamic Form Validation Hints ---
-
-    /**
-     * Handle dynamic form validation hints
-     */
-    function initFormValidation() {
-        if (titleInput) {
-            titleInput.addEventListener('blur', function() {
-                if (!this.value.trim()) {
-                    this.classList.add('microblog-input-error');
-                } else {
-                    this.classList.remove('microblog-input-error');
+                    }, 500);
                 }
-            });
-            
-            titleInput.addEventListener('input', function() {
-                if (this.value.trim()) {
-                    this.classList.remove('microblog-input-error');
-                }
-            });
+            }, 5000);
         }
     }
-    
-    // --- Responsive Preview ---
 
     /**
-     * Handle responsive image preview adjustments
+     * Add character counter functionality (optional enhancement)
      */
-    function initResponsivePreview() {
-        if (previewImg) {
-            previewImg.addEventListener('load', function() {
-                this.style.maxWidth = '100%'; 
-                this.style.height = 'auto';
-            });
-        }
-    }
-    
-    // --- Accessibility ---
+    if (textarea) {
+        // Add character counter below textarea
+        var charCounter = document.createElement('div');
+        charCounter.className = 'microblog-char-counter';
+        charCounter.style.fontSize = '12px';
+        charCounter.style.color = '#666';
+        charCounter.style.marginTop = '5px';
+        textarea.parentNode.insertBefore(charCounter, textarea.nextSibling);
 
-    /**
-     * Accessibility improvements for form elements
-     */
-    function initAccessibility() {
-        if (uploadBtn) {
-            const helpTextId = 'microblog-upload-help';
-            uploadBtn.setAttribute('aria-describedby', helpTextId);
+        // Update character count
+        function updateCharCount() {
+            var count = textarea.value.length;
+            charCounter.textContent = count + ' characters';
             
-            let helpTextElement = document.getElementById(helpTextId);
-            if (!helpTextElement && uploadBtn.parentNode) {
-                helpTextElement = document.createElement('div');
-                helpTextElement.id = helpTextId;
-                helpTextElement.className = 'screen-reader-text';
-                helpTextElement.textContent = getLocalizedText('uploadHelpText', 'Supported formats: JPG, PNG, WebP, GIF. Maximum one image.');
-                uploadBtn.parentNode.appendChild(helpTextElement);
+            // Change color if approaching common limits
+            if (count > 280) {
+                charCounter.style.color = '#ff6b6b';
+            } else if (count > 240) {
+                charCounter.style.color = '#ffa500';
+            } else {
+                charCounter.style.color = '#666';
             }
         }
-        
-        // Ensure form fields are properly labelled
-        if (microblogForm) {
-            const formFields = microblogForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
-            formFields.forEach(field => {
-                if (field.id && !field.getAttribute('aria-label') && !field.getAttribute('aria-labelledby')) {
-                    const label = microblogForm.querySelector(`label[for="${field.id}"]`);
-                    if (label) {
-                        if (!label.id) {
-                            label.id = field.id + '-label';
-                        }
-                        field.setAttribute('aria-labelledby', label.id);
-                    }
-                }
-            });
-        }
-    }
 
-    // --- Utility Functions ---
+        // Initial count
+        updateCharCount();
 
-    /**
-     * Get localized text with fallback
-     */
-    function getLocalizedText(key, fallback) {
-        if (typeof microblog_ajax !== 'undefined' && 
-            microblog_ajax.l10n && 
-            microblog_ajax.l10n[key]) {
-            return microblog_ajax.l10n[key];
-        }
-        return fallback;
+        // Update on input
+        textarea.addEventListener('input', updateCharCount);
+        textarea.addEventListener('paste', function() {
+            // Delay to allow paste to complete
+            setTimeout(updateCharCount, 10);
+        });
     }
 
     /**
-     * Get config value with fallback
+     * Add auto-resize functionality to textarea
      */
-    function getConfigValue(key, fallback) {
-        if (typeof microblog_ajax !== 'undefined' && microblog_ajax[key]) {
-            return microblog_ajax[key];
+    if (textarea) {
+        function autoResize() {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
         }
-        return fallback;
-    }
 
-}); // End DOMContentLoaded
+        textarea.addEventListener('input', autoResize);
+        textarea.addEventListener('paste', function() {
+            setTimeout(autoResize, 10);
+        });
+
+        // Initial resize
+        autoResize();
+    }
+});
+
+/**
+ * Global error handler for uncaught errors in microblog functionality
+ */
+window.addEventListener('error', function(event) {
+    if (event.filename && event.filename.includes('microblog')) {
+        console.error('MicroBlog Error:', event.error);
+    }
+});
