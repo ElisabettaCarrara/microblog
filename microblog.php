@@ -3,7 +3,7 @@
  * Plugin Name: MicroBlog
  * Plugin URI: https://elica-webservices.it
  * Description: Adds a minimal front-end blogging form to your site giving it a microblog feel. Inspired by Narwhal Microblog
- * Version: 1.1
+ * Version: 1.9
  * Requires CP: 1.0
  * Requires PHP: 8.1
  * Author: Elisabetta Carrara
