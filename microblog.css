@@ -1,424 +1,174 @@
-/**
- * Microblog Plugin Styles
- * Responsive and accessible styling for the microblog plugin
- */
+/* microblog.css */
 
-/* Form Container */
+/* General form styling */
 .microblog-form-container {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 25px;
     max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 30px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-.microblog-form {
+#microblog-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
-/* Form Fields */
-.microblog-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.microblog-field label {
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-}
-
-.microblog-field input[type="text"],
-.microblog-field select {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-}
-
-.microblog-field input[type="text"]:focus,
-.microblog-field select:focus {
-    outline: none;
-    border-color: #0073aa;
-    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
-}
-
-/* TinyMCE Editor Wrapper */
-.microblog-field .wp-editor-wrap {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.microblog-field .wp-editor-wrap:focus-within {
-    border-color: #0073aa;
-    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
-}
-
-/* Image Upload Section */
-.microblog-thumbnail-upload {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.microblog-upload-button {
-    padding: 12px 24px;
-    background: #0073aa;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-    align-self: flex-start;
-}
-
-.microblog-upload-button:hover {
-    background: #005a87;
-}
-
-.microblog-upload-button:focus {
-    outline: 2px solid #0073aa;
-    outline-offset: 2px;
-}
-
-/* Image Preview */
-.microblog-image-preview {
-    position: relative;
-    display: inline-block;
-    max-width: 300px;
-}
-
-.microblog-image-preview img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.microblog-remove-image {
-    background: #eee;
-    color: #333;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 4px 12px;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 8px;
-}
-.microblog-remove-image:hover {
-    background: #f8d7da;
-    color: #a94442;
-    border-color: #f5c6cb;
-}
-
-.microblog-hp-field {
-    display: none;
-}
-
-/* Submit Button */
-.microblog-submit-button {
-    padding: 14px 28px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    align-self: flex-start;
-}
-
-.microblog-submit-button:hover {
-    background: #218838;
-}
-
-.microblog-submit-button:focus {
-    outline: 2px solid #28a745;
-    outline-offset: 2px;
-}
-
-.microblog-submit-button:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-}
-
-/* Messages */
-.microblog-message {
-    padding: 12px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    margin-top: 10px;
-}
-
-.microblog-message-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.microblog-message-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.microblog-message-info {
-    background: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
-}
-
-/* Login Prompt */
-.microblog-login-prompt {
-    text-align: center;
-    padding: 40px 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-.microblog-login-prompt p {
-    margin: 0 0 16px 0;
-    color: #6c757d;
-}
-
-.microblog-login-link,
-.microblog-register-link {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #0073aa;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    margin: 0 5px;
-}
-
-.microblog-login-link:hover,
-.microblog-register-link:hover {
-    background: #005a87;
-    color: white;
-    text-decoration: none;
-}
-
-/* Display Section */
-.microblog-display {
-    display: grid;
-    gap: 30px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.microblog-post {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: box-shadow 0.3s ease;
-}
-
-.microblog-post:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Post Header */
-.microblog-post-header {
-    padding: 20px 20px 0 20px;
-}
-
-.microblog-post-title {
-    margin: 0 0 12px 0;
-    font-size: 1.4em;
-    line-height: 1.3;
-}
-
-.microblog-post-title a {
-    color: #333;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.microblog-post-title a:hover {
-    color: #0073aa;
-}
-
-.microblog-post-meta {
-    display: flex;
-    gap: 16px;
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 16px;
-}
-
-.microblog-post-meta a {
-    color: #0073aa;
-    text-decoration: none;
-}
-
-.microblog-post-meta a:hover {
-    text-decoration: underline;
-}
-
-/* Post Content */
-.microblog-post-content {
-    padding: 0 20px;
-}
-
-.microblog-thumbnail {
-    margin-bottom: 16px;
-}
-
-.microblog-thumbnail img {
+/* Textarea styling */
+#microblog-content {
     width: 100%;
-    height: auto;
-    border-radius: 4px;
+    padding: 12px 15px;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 100px;
+    resize: vertical;
+    box-sizing: border-box; /* Ensures padding is included in the width */
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-.microblog-excerpt {
-    color: #555;
-    line-height: 1.6;
+#microblog-content:focus {
+    border-color: #0073aa; /* WordPress primary blue */
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: none;
+}
+
+/* Character counter styling */
+.microblog-char-counter {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.microblog-char-counter[style*="color: rgb(255, 107, 107)"] { /* Over 280 chars */
+    color: #ff6b6b !important;
+    font-weight: bold;
+}
+
+.microblog-char-counter[style*="color: rgb(255, 165, 0)"] { /* Over 240 chars */
+    color: #ffa500 !important;
+}
+
+/* Select dropdown styling */
+#microblog-category {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fcfcfc;
+    cursor: pointer;
+    appearance: none; /* Remove default arrow on some browsers */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23666666"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+    transition: border-color 0.2s ease-in-out;
+}
+
+#microblog-category:focus {
+    border-color: #0073aa;
+    outline: none;
+}
+
+/* Submit button styling */
+input[type="submit"] {
+    background-color: #0073aa;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 25px;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    width: auto; /* Adjust width to content */
+    align-self: flex-end; /* Align button to the right */
+}
+
+input[type="submit"]:hover {
+    background-color: #006799;
+}
+
+input[type="submit"]:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* WordPress-style notice messages */
+.microblog-messages {
     margin-bottom: 20px;
 }
 
-.microblog-excerpt p:last-child {
-    margin-bottom: 0;
+.microblog-messages .notice {
+    padding: 12px 20px;
+    margin: 0 0 15px 0;
+    border-left: 4px solid;
+    border-radius: 4px;
+    position: relative;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    word-wrap: break-word; /* Ensure long messages wrap */
 }
 
-/* Post Footer */
-.microblog-post-footer {
-    padding: 0 20px 20px 20px;
-    border-top: 1px solid #eee;
-    margin-top: 16px;
-    padding-top: 16px;
+.microblog-messages .notice p {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1.4;
+    flex-grow: 1;
 }
 
-.microblog-categories {
-    font-size: 13px;
-    color: #666;
+.microblog-messages .notice-success {
+    border-color: #46b450; /* Green */
+    background-color: #e6ffe6; /* Light green background */
+    color: #388e3c; /* Darker green text */
 }
 
-.microblog-categories-label {
-    font-weight: 600;
-    margin-right: 8px;
+.microblog-messages .notice-error {
+    border-color: #dc3232; /* Red */
+    background-color: #ffe6e6; /* Light red background */
+    color: #d32f2f; /* Darker red text */
 }
 
-.microblog-categories a {
-    color: #0073aa;
-    text-decoration: none;
-    background: #f8f9fa;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    margin-left: 4px;
-    transition: background-color 0.3s ease;
+.microblog-messages .notice-info {
+    border-color: #0073aa; /* Blue */
+    background-color: #e7f7ff; /* Light blue background */
+    color: #005f88; /* Darker blue text */
 }
 
-.microblog-categories a:hover {
-    background: #e9ecef;
-    text-decoration: none;
+.microblog-messages .notice-dismiss {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    color: #999;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    transition: color 0.2s ease-in-out;
 }
 
-/* No Posts Message */
-.microblog-no-posts {
-    text-align: center;
-    color: #666;
-    font-style: italic;
-    padding: 40px 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+.microblog-messages .notice-dismiss:hover {
+    color: #333;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .microblog-form-container {
-        margin: 0 16px;
-        padding: 16px;
-    }
-    
-    .microblog-form {
-        gap: 16px;
-    }
-    
-    .microblog-field input[type="text"],
-    .microblog-field select {
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
-    
-    .microblog-post-meta {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .microblog-display {
-        margin: 0 16px;
-        gap: 20px;
-    }
-    
-    .microblog-post-header,
-    .microblog-post-content,
-    .microblog-post-footer {
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-}
-
-@media (max-width: 480px) {
-    .microblog-post-title {
-        font-size: 1.2em;
-    }
-    
-    .microblog-submit-button,
-    .microblog-upload-button {
-        width: 100%;
-        text-align: center;
-    }
-    
-    .microblog-image-preview {
-        max-width: 100%;
-    }
-}
-
-/* High Contrast Mode Support */
-@media (prefers-contrast: high) {
-    .microblog-post {
-        border: 2px solid #000;
-    }
-    
-    .microblog-form-container {
-        border: 2px solid #000;
-    }
-    
-    .microblog-field input[type="text"]:focus,
-    .microblog-field select:focus {
-        border-color: #000;
-        box-shadow: 0 0 0 3px #000;
-    }
-}
-
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-    .microblog-upload-button,
-    .microblog-submit-button,
-    .microblog-post,
-    .microblog-field input[type="text"],
-    .microblog-field select {
-        transition: none;
-    }
-}
-
-/* Screen Reader Only Content */
-.screen-reader-text {
+.microblog-messages .notice .screen-reader-text {
     border: 0;
     clip: rect(1px, 1px, 1px, 1px);
+    -webkit-clip-path: inset(50%);
     clip-path: inset(50%);
     height: 1px;
     margin: -1px;
@@ -426,35 +176,55 @@
     padding: 0;
     position: absolute;
     width: 1px;
-    word-wrap: normal;
+    word-wrap: normal !important;
 }
 
-/* Focus Visible Support */
-.microblog-upload-button:focus-visible,
-.microblog-submit-button:focus-visible,
-.microblog-remove-image:focus-visible {
-    outline: 2px solid #0073aa;
-    outline-offset: 2px;
+/* Microblog list display styling */
+.microblog-list {
+    margin-top: 30px;
 }
 
-/* Print Styles */
-@media print {
-    .microblog-form-container,
-    .microblog-login-prompt {
-        display: none;
+.microblog-entry {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.microblog-entry h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #333333;
+    line-height: 1.3;
+}
+
+.microblog-content p {
+    margin-bottom: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #444444;
+}
+
+.microblog-meta {
+    font-size: 13px;
+    color: #777777;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    margin-top: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .microblog-form-container {
+        margin: 20px 15px;
+        padding: 20px;
     }
-    
-    .microblog-post {
-        box-shadow: none;
-        border: 1px solid #000;
-        break-inside: avoid;
-        margin-bottom: 20px;
-    }
-    
-    .microblog-post-title a,
-    .microblog-post-meta a,
-    .microblog-categories a {
-        color: #000;
-        text-decoration: underline;
+
+    input[type="submit"] {
+        width: 100%;
+        align-self: center;
     }
 }
